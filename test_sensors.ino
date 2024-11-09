@@ -1,9 +1,5 @@
-// test.in
-// test_sensors.ino
-
 #include <Arduino.h>
 #include "Sensors.h"
-
 // Create sensor objects
 
 // BNO055 Sensors
@@ -58,74 +54,74 @@ void loop()
     BNO055Data data2 = bno2.readData();
 
     // Collect valid data
-    Vec3 total_attitude(0, 0, 0);
-    Vec3 total_rate(0, 0, 0);
-    int attitude_count = 0;
-    int rate_count = 0;
+    imu::Vector<3> orientation_sum(0, 0, 0);
+    imu::Vector<3> gyro_sum(0, 0, 0);
+    imu::Vector<3> accel_sum(0, 0, 0);
 
-    if (data0.valid_attitude)
-    {
-        total_attitude += data0.attitude;
-        attitude_count++;
-    }
-    if (data1.valid_attitude)
-    {
-        total_attitude += data1.attitude;
-        attitude_count++;
-    }
-    if (data2.valid_attitude)
-    {
-        total_attitude += data2.attitude;
-        attitude_count++;
-    }
+    int orientation_count = 0;
+    int acceleration_count = 0;
+    int gyro_count = 0;
 
-    if (data0.valid_rate)
-    {
-        total_rate += data0.rate;
-        rate_count++;
-    }
-    if (data1.valid_rate)
-    {
-        total_rate += data1.rate;
-        rate_count++;
-    }
-    if (data2.valid_rate)
-    {
-        total_rate += data2.rate;
-        rate_count++;
-    }
+    orientation_sum += data0.orientation;
+    orientation_sum += data1.orientation;
+    orientation_sum += data2.orientation;
+    orientation_count += 3;
+    gyro_sum += data0.gyro;
+    gyro_sum += data1.gyro;
+    gyro_sum += data2.gyro;
+    gyro_count += 3;
+    accel_sum += data0.acceleration;
+    accel_sum += data1.acceleration;
+    accel_sum += data2.acceleration;
+    acceleration_count += 3;
 
-    Vec3 average_attitude;
-    Vec3 average_rate;
+    imu::Vector<3> avg_orientation;
+    imu::Vector<3> avg_accel;
+    imu::Vector<3> avg_gyro;
 
-    if (attitude_count > 0)
+    if (orientation_count > 0)
     {
-        average_attitude = total_attitude / attitude_count;
+        avg_orientation = orientation_sum / orientation_count;
     }
     else
     {
-        average_attitude = Vec3(0, 0, 0); // Default or previous value
+        avg_orientation = imu::Vector<3>(0, 0, 0); // Default or previous value
     }
 
-    if (rate_count > 0)
+    if (gyro_count > 0)
     {
-        average_rate = total_rate / rate_count;
+         avg_gyro = gyro_sum / gyro_count;
     }
     else
     {
-        average_rate = Vec3(0, 0, 0); // Default or previous value
+        avg_gyro = imu::Vector<3>(0, 0, 0); // Default or previous value
+    }
+
+    if (acceleration_count > 0)
+    {
+        avg_accel = accel_sum / acceleration_count;
+    }
+    else
+    {
+        avg_accel = imu::Vector<3>(0, 0, 0); // Default or previous value
     }
 
     // Print attitude and rate
-    Serial.print("Attitude: ");
-    Serial.print("X: "); Serial.print(average_attitude.x);
-    Serial.print(" Y: "); Serial.print(average_attitude.y);
-    Serial.print(" Z: "); Serial.println(average_attitude.z);
+    Serial.print("Orientation: ");
+    Serial.print("X: "); Serial.print(avg_orientation.x);
+    Serial.print(" Y: "); Serial.print(avg_orientation.y);
+    Serial.print(" Z: "); Serial.println(avg_orientation.z);
 
-    Serial.print("Rate: ");
-    Serial.print("X: "); Serial.print(average_rate.x);
-    Serial.print(" Y: "); Serial.print(average_rate.y);
-    Serial.print(" Z: "); Serial.println(average_rate.z);
+    Serial.print("Acceleration: ");
+    Serial.print("X: "); Serial.print(avg_accel.x);
+    Serial.print(" Y: "); Serial.print(avg_accel.y);
+    Serial.print(" Z: "); Serial.println(avg_accel.z);
+
+    Serial.print("Gyroscope: ");
+    Serial.print("X: "); Serial.print(avg_gyro.x);
+    Serial.print(" Y: "); Serial.print(avg_gyro.y);
+    Serial.print(" Z: "); Serial.println(avg_gyro.z);
+
 
     // Read data from BMP581 sensors
     float pressure0, temperature0;
@@ -149,15 +145,6 @@ void loop()
 
     // Read data from GNSS module
     gnss.readData();
-
-    // Print GNSS data
-    Serial.print("Latitude: "); Serial.print(gnss.getLatitude(), 7);
-    Serial.print(", Longitude: "); Serial.print(gnss.getLongitude(), 7);
-    Serial.print(", Altitude: "); Serial.print(gnss.getAltitude(), 2); Serial.println(" m");
-    Serial.print("Fix Type: "); Serial.println(gnss.getFixType());
-
-    // Process sensor data as needed
-    // ...
 
     delay(100); // Adjust the delay as necessary
 }
