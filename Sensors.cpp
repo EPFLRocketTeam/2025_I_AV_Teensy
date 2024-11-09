@@ -1,169 +1,131 @@
-
 // Sensors.cpp
-
 #include "Sensors.h"
 
 // --------------------
 // BNO055Sensor Methods
 // --------------------
-
-BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire, Vec3 att_calib, Vec3 rate_calib)
-    : bno(55, address, wire), att_calibration(att_calib), rate_calibration(rate_calib)
+BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire);
+    : bno(55, address, wire)
 {
 }
 
-void BNO055Sensor::setup()
+bool BNO055Sensor::setup()
 {
-    if (!bno.begin())
-    {
-        Serial.print("Failed to initialize BNO055 sensor at address 0x");
-        Serial.println(bno.getAddress(), HEX);
-    }
-    else
-    {
-        // Set axis remap and sign (adjust as needed)
-        bno.setAxisRemap(Adafruit_BNO055::REMAP_CONFIG_P6);
-        bno.setAxisSign(Adafruit_BNO055::REMAP_SIGN_P6);
-    }
+    if (!bno.begin()) return 0;
+    delay(1000);
+    bno.setExtCrystalUse(true);
+
+    updateCalStatus();
+
+    return 1;
+}
+
+const bool updateCalStatus(){
+    bno.getCalibration(&system_cal_status,
+                        &gyro_cal_status, 
+                        &accel_cal_status, &mag_cal_status);
+    return system_cal_status > 0;
+}
+void displayCalStatus(){
+//to do
 }
 
 void BNO055Sensor::calibrate()
 {
-    // Implement calibration routine if necessary
-    // For now, using predefined calibration data
+    //if necessary, according adafruit guide, as soon as you turn it on, it already starts callibrating
+    //placeholder stupid calibration:
+    while (system_cal_status < 2){
+        updateCalStatus();
+        displayCalStatus();
+    }
 }
 
-BNO055Data BNO055Sensor::readData()
+const BNO055Data BNO055Sensor::readData() const
 {
-    BNO055Data data;
+    imu::Vector<3> orient = bno.getEvent(Adafruit_BNO055::VECTOR_EULER);
+    imu::Vector<3> gyro = bno.getEvent(Adafruit_BNO055::VECTOR_GYROSCOPE);
+    imu::Vector<3> accel = bno.getEvent(Adafruit_BNO055::VECTOR_LIENARACCEL);
 
-    sensors_event_t orientationData, angVelocityData;
-    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-    bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
-
-    const sensors_vec_t &o = orientationData.orientation;
-    Vec3 orientation{o.x, o.y, o.z};
-    if (orientation.x != 0 || orientation.y != 0 || orientation.z != 0)
-    {
-        orientation = orientation - att_calibration;
-        data.attitude = Vec3{orientation.y, -orientation.z, orientation.x};
-        data.valid_attitude = true;
-    }
-
-    const sensors_vec_t &g = angVelocityData.gyro;
-    Vec3 gyro{g.x, g.y, g.z};
-    if (gyro.x != 0 || gyro.y != 0 || gyro.z != 0)
-    {
-        gyro = gyro - rate_calibration;
-        gyro = gyro.toDegree();
-        data.rate = Vec3{-gyro.z, gyro.x, gyro.y};
-        data.valid_rate = true;
-    }
-
-    return data;
+    return BNO055Data{orient, gyro, accel};
 }
 
+const imu::Vector<3> readAccelRaw() const {
+    return bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+}
+const imu::Vector<3> readGyroRaw() const {
+    return bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+}
+const imu::Vector<3> readMagnetometerRaw() const {
+    return bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+}
 // --------------------
 // BMP581Sensor Methods
 // --------------------
 
 BMP581Sensor::BMP581Sensor(uint8_t address, TwoWire *wire)
-    : i2c_address(address), wire(wire)
+    : i2c_address(address), wire(wire), bufferIndex(0)
 {
+
+    std::fill(std::begin(pressureBuffer), std::end(pressureBuffer), 0.0f);
 }
 
-void BMP581Sensor::setup()
+const bool BMP581Sensor::setup()
 {
-    if (bmp.beginI2C(i2c_address, *wire) != BMP5_OK)
-    {
-        Serial.print("Failed to initialize BMP581 sensor at address 0x");
-        Serial.println(i2c_address, HEX);
-    }
+    if (bmp.beginI2C(i2c_address, *wire) != BMP5_OK) return 0;
+    return 1;
 }
 
 void BMP581Sensor::calibrate()
 {
-    // Implement calibration routine if necessary
+    // Implement calibration if necessary
 }
 
-void BMP581Sensor::readData(float &pressure, float &temperature)
+const BMPData BMP581Sensor::readData() const
 {
-    bmp5_sensor_data data;
-    if (bmp.getSensorData(&data) == BMP5_OK)
-    {
-        pressure = data.pressure;
-        temperature = data.temperature;
-    }
-    else
-    {
-        Serial.print("Failed to read data from BMP581 sensor at address 0x");
-        Serial.println(i2c_address, HEX);
-    }
+    BMPData data{0,0};
+    if (bmp.getSensorData(&data) == BMP5_OK) { return data; }
+    else { return BMPData{0, 0}; }
 }
 
-// --------------------
-// GNSSSensor Methods
-// --------------------
 
-GNSSSensor::GNSSSensor(HardwareSerial &serialPort)
-    : serial(serialPort), latitude(0), longitude(0), altitude(0), fixType(0)
-{
-}
+const float BMP581Sensor::readPressure() {
+    BMPData data{0,0};
+    if (bmp.getSensorData(&data) == BMP5_OK) { 
+        if (bufferSize == 10) {
+            // Subtract the value that is being overwritten from the sum
+            pressureSum -= pressureBuffer[bufferIndex];
+        } else {
+            bufferSize++;
+        }
 
-void GNSSSensor::setup()
-{
-    serial.begin(38400);
-    if (!gnss.begin(serial))
-    {
-        Serial.println("Failed to initialize u-blox GNSS module");
-    }
-    else
-    {
-        Serial.println("u-blox GNSS module initialized");
+        // Add the new pressure reading to the buffer and update the sum
+        pressureBuffer[bufferIndex] = data.pressure;
+        pressureSum += data.pressure;
 
-        // Configure GNSS settings if necessary
-        gnss.setNavigationFrequency(10);               // Set update rate to 10 Hz
-        gnss.setUART1Output(COM_TYPE_UBX);             // Set output to UBX protocol
+        // Update the buffer index in a circular manner
+        bufferIndex = (bufferIndex + 1) % 10;
+
+        return data.pressure; 
+    } else { 
+        return 0; 
     }
 }
-
-void GNSSSensor::calibrate()
-{
-    // Calibration not typically needed for GNSS modules
+const float BMP581Sensor::getPressureFiltered() const {
+    if (bufferSize == 0) return 0;
+    return pressureSum / bufferSize;
 }
 
-void GNSSSensor::readData()
-{
-    if (gnss.getPVT())
-    {
-        long lat = gnss.getLatitude();
-        long lon = gnss.getLongitude();
-        long alt = gnss.getAltitude();
-        fixType = gnss.getFixType();
-
-        latitude = lat / 1e7;
-        longitude = lon / 1e7;
-        altitude = alt / 1000.0; // Convert mm to meters
-    }
+const float BMP581Sensor::readTemperature() const{
+    BMPData data{0,0};
+    if (bmp.getSensorData(&data) == BMP5_OK) { return data.temperature; }
+    else { return 0; }
 }
 
-double GNSSSensor::getLatitude() const
-{
-    return latitude;
-}
+void BMP581Sensor::enableFilteringAndOversampling() {
+    //these settings should be adjusted manually according to requirements
+    bmp.setPressureOversampling(BMP5_OVERSAMPLING_16X);
+    bmp.setTemperatureOversampling(BMP5_OVERSAMPLING_2X);
 
-double GNSSSensor::getLongitude() const
-{
-    return longitude;
+    // Enable IIR filter
+    bmp.setIIRFilterCoefficient(BMP5_IIR_FILTER_COEFF_7);
 }
-
-double GNSSSensor::getAltitude() const
-{
-    return altitude;
-}
-
-uint8_t GNSSSensor::getFixType() const
-{
-    return fixType;
-}
-

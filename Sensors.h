@@ -8,63 +8,18 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
-#include <SparkFun_u-blox_GNSS_Arduino_Library.h>
-
-// Define Vec3 structure if not already defined
-struct Vec3
-{
-    float x;
-    float y;
-    float z;
-
-    Vec3() : x(0), y(0), z(0) {}
-    Vec3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
-
-    Vec3 operator+(const Vec3 &other) const
-    {
-        return Vec3(x + other.x, y + other.y, z + other.z);
-    }
-
-    Vec3 &operator+=(const Vec3 &other)
-    {
-        x += other.x;
-        y += other.y;
-        z += other.z;
-        return *this;
-    }
-
-    Vec3 operator-(const Vec3 &other) const
-    {
-        return Vec3(x - other.x, y - other.y, z - other.z);
-    }
-
-    Vec3 operator/(float scalar) const
-    {
-        return Vec3(x / scalar, y / scalar, z / scalar);
-    }
-
-    Vec3 toDegree() const
-    {
-        return Vec3(x * RAD_TO_DEG, y * RAD_TO_DEG, z * RAD_TO_DEG);
-    }
-};
-
 // Structure to hold BNO055 sensor data
 struct BNO055Data
 {
-    Vec3 attitude;
-    Vec3 rate;
-    bool valid_attitude;
-    bool valid_rate;
-
-    BNO055Data() : valid_attitude(false), valid_rate(false) {}
+    imu::Vector<3> orientation;
+    imu::Vector<3> gyroscope;
+    imu::Vector<3> acceleration;
 };
 
-// Base Sensor class (optional for common functionality)
 class Sensor
 {
 public:
-    virtual void setup() = 0;
+    virtual bool setup() = 0;
     virtual void calibrate() = 0;
 };
 
@@ -72,58 +27,56 @@ public:
 class BNO055Sensor : public Sensor
 {
 public:
-    BNO055Sensor(uint8_t address, TwoWire *wire, Vec3 att_calib, Vec3 rate_calib);
+    BNO055Sensor(uint8_t address, TwoWire *wire);
 
     void setup() override;
     void calibrate() override;
-    BNO055Data readData();
+
+    const bool updateCalStatus();
+    void displayCalStatus();
+
+    const BNO055Data readData() const;
+
+    const imu::Vector<3> readAccelRaw() const;
+    const imu::Vector<3> readGyroRaw() const;
+    const imu::Vector<3> readMagnetometerRaw() const;
 
 private:
     Adafruit_BNO055 bno;
-    Vec3 att_calibration;
-    Vec3 rate_calibration;
+    uint8_t system_cal_status;
+    uint8_t gyro_cal_status;
+    uint8_t accel_cal_status;
+    uint8_t mag_cal_status;
 };
 
 // BMP581 Sensor Class
+struct BMPData{
+    float pressure;
+    float temperature;
+};
+
 class BMP581Sensor : public Sensor
 {
 public:
     BMP581Sensor(uint8_t address, TwoWire *wire);
 
-    void setup() override;
+    const bool setup() override;
     void calibrate() override;
-    void readData(float &pressure, float &temperature);
+    BMPData readData() const;
+    const float readPressure();
+    const float readTemperature() const;
+    const float getPressureFiltered() const;
+    void enableFilteringAndOversampling();
 
 private:
     BMP581 bmp;
     uint8_t i2c_address;
     TwoWire *wire;
-};
-
-// GNSS Sensor Class
-class GNSSSensor : public Sensor
-{
-public:
-    GNSSSensor(HardwareSerial &serialPort);
-
-    void setup() override;
-    void calibrate() override; // Calibration not typically needed for GNSS
-    void readData();
-
-    // Accessor methods for GNSS data
-    double getLatitude() const;
-    double getLongitude() const;
-    double getAltitude() const;
-    uint8_t getFixType() const;
-
-private:
-    SFE_UBLOX_GNSS gnss;
-    HardwareSerial &serial;
-    double latitude;
-    double longitude;
-    double altitude;
-    uint8_t fixType;
+    //circular buffer for pressure average to cancel out noise
+    static constexpr int bufferSize = 10; 
+    int bufferIndex;
+    float pressureBuffer[bufferSize];
+    float pressureSum;
 };
 
 #endif // SENSORS_H
-

@@ -7,9 +7,9 @@
 // Create sensor objects
 
 // BNO055 Sensors
-BNO055Sensor bno0(0x28, &Wire, Vec3(0.0, 1.875, 84.375), Vec3(0.0000155833, -0.0000155833, -0.0003133974));
-BNO055Sensor bno1(0x29, &Wire, Vec3(0.0, 2.5, 83.75), Vec3(0.0000554660, -0.0001411861, 0.0001042088));
-BNO055Sensor bno2(0x29, &Wire1, Vec3(0.0, -0.5, 84.125), Vec3(0.0000536474, 0.0001226227, 0.0002937835));
+BNO055Sensor bno0(0x28, &Wire);
+BNO055Sensor bno1(0x29, &Wire);
+BNO055Sensor bno2(0x29, &Wire1);
 
 // BMP581 Sensors
 BMP581Sensor bmp0(0x46, &Wire);
