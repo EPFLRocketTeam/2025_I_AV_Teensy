@@ -89,4 +89,5 @@ add_executable(2025_I_AV_Teensy
         Sensors.cpp
         Sensors.h
         test_sensors.ino
-        Client.cpp)
+        Client.cpp
+        example_uart_code/Transmit.cpp)
