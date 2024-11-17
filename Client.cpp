@@ -1,71 +1,53 @@
-#include <iostream>
-#include <bitset>
+#include "Client.h"
 #include <cstring>
 
-// Define module IDs here, max number of ids is 8, can be changed by adding a byte, resulting in 128 ids
-#define TEMPLATE_MODULE_ID 1
+Module::Module() = default;
 
-// Base class for all the modules that need to send data over UART
-class Module {
-public:
-    explicit Module(int module_id) : module_id(module_id) {}
-
-    // Method to package data into a 5-byte array (1 byte for sensor ID, 4 bytes for float value)
-    virtual void generate_message(float value, char *buffer) {
-        // Pack sensor ID (1 byte) and 4-byte float value (IEEE 754 format)
-        buffer[0] = static_cast<char>(module_id);  // 1 byte for sensor ID
-        // Copy the 4-byte float into the buffer starting at index 1
-        std::memcpy(&buffer[1], &value, sizeof(float));
-    }
-
-    // Method to unpack the 5-byte message
-    virtual void unpack_message(const char *buffer, float &value) {
-        // Extract sensor ID (1 byte)
-        module_id = static_cast<int>(static_cast<unsigned char>(buffer[0]));
-
-        // Extract the 4-byte float value from the buffer
-        std::memcpy(&value, &buffer[1], sizeof(float));
-    }
-
-protected:
-    int module_id;
-};
-
-
-// Example module
-class TemplateModule : public Module {
-public:
-    explicit TemplateModule(int module_id) : Module(module_id) {}
-
-    void generate_message(float value, char *buffer) override {
-        Module::generate_message(value, buffer);
-    }
-
-    void unpack_message(const char *buffer, float &temperature) override {
-        Module::unpack_message(buffer, temperature);
-    }
-};
-
-
-// Helper function to print the message in hex format
-void print_message(const char* message) {
-    for (int i = 0; i < 5; ++i) {
-        printf("%02X ", (unsigned char)message[i]);
-    }
-    printf("\n");
+void Module::generate_message(float value1, float value2, float value3, char *buffer) {
+    std::memcpy(&buffer[0], &value1, sizeof(float));
+    std::memcpy(&buffer[4], &value2, sizeof(float));
+    std::memcpy(&buffer[8], &value3, sizeof(float));
 }
 
+void Module::unpack_message(const char *buffer, float &value1, float &value2, float &value3) {
+    std::memcpy(&value1, &buffer[0], sizeof(float));
+    std::memcpy(&value2, &buffer[4], sizeof(float));
+    std::memcpy(&value3, &buffer[8], sizeof(float));
+}
 
-// example usage
-int main() {
-    TemplateModule template_module(TEMPLATE_MODULE_ID);
-    char template_message[5];
-    float template_value = 25.6f;
-    template_module.generate_message(template_value, template_message);
-    std::cout << "Template Message: ";
-    print_message(template_message);
-    float unpacked_template;
-    template_module.unpack_message(template_message, unpacked_template);
-    std::cout << "Unpacked Template: " << unpacked_template << std::endl;
-    return 0;
+TemplateModule::TemplateModule() = default;
+
+void TemplateModule::generate_message(float value1, float value2, float value3, char *buffer) {
+    Module::generate_message(value1, value2, value3, buffer);
+}
+
+void TemplateModule::unpack_message(const char *buffer, float &value1, float &value2, float &value3) {
+    Module::unpack_message(buffer, value1, value2, value3);
+}
+
+void Manager::add_module(Module *module) {
+    modules.push_back(module);
+}
+
+void Manager::generate_combined_message(char identifier, char *combined_buffer) {
+    combined_buffer[0] = identifier;
+    int offset = 1;
+    for (auto &module : modules) {
+        char module_buffer[12];
+        float value1 = 1.0f, value2 = 2.0f, value3 = 3.0f;
+        module->generate_message(value1, value2, value3, module_buffer);
+        std::memcpy(&combined_buffer[offset], module_buffer, 12);
+        offset += 12;
+    }
+}
+
+void Manager::unpack_combined_message(const char *combined_buffer, char &identifier, std::vector<std::tuple<float, float, float>> &values) {
+    identifier = combined_buffer[0];
+    int offset = 1;
+    for (auto &module : modules) {
+        float value1, value2, value3;
+        module->unpack_message(&combined_buffer[offset], value1, value2, value3);
+        values.emplace_back(value1, value2, value3);
+        offset += 12;
+    }
 }
