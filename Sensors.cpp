@@ -4,8 +4,8 @@
 // --------------------
 // BNO055Sensor Methods
 // --------------------
-BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire);
-    : bno(55, address, wire)
+BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire)
+    :bno(55, address, wire)
 {
 }
 
@@ -20,13 +20,13 @@ bool BNO055Sensor::setup()
     return 1;
 }
 
-const bool updateCalStatus(){
+const bool BNO055Sensor::updateCalStatus(){
     bno.getCalibration(&system_cal_status,
                         &gyro_cal_status, 
                         &accel_cal_status, &mag_cal_status);
     return system_cal_status > 0;
 }
-void displayCalStatus(){
+void BNO055Sensor::displayCalStatus(){
 //to do
 }
 
@@ -40,22 +40,22 @@ void BNO055Sensor::calibrate()
     }
 }
 
-const BNO055Data BNO055Sensor::readData() const
+BNO055Data BNO055Sensor::readData()
 {
-    imu::Vector<3> orient = bno.getEvent(Adafruit_BNO055::VECTOR_EULER);
-    imu::Vector<3> gyro = bno.getEvent(Adafruit_BNO055::VECTOR_GYROSCOPE);
-    imu::Vector<3> accel = bno.getEvent(Adafruit_BNO055::VECTOR_LIENARACCEL);
+    imu::Vector<3> orient = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+    imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+    imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 
     return BNO055Data{orient, gyro, accel};
 }
 
-const imu::Vector<3> readAccelRaw() const {
+imu::Vector<3> BNO055Sensor::readAccelRaw() {
     return bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 }
-const imu::Vector<3> readGyroRaw() const {
+imu::Vector<3> BNO055Sensor::readGyroRaw() {
     return bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 }
-const imu::Vector<3> readMagnetometerRaw() const {
+imu::Vector<3> BNO055Sensor::readMagnetometerRaw() {
     return bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
 // --------------------
@@ -63,13 +63,13 @@ const imu::Vector<3> readMagnetometerRaw() const {
 // --------------------
 
 BMP581Sensor::BMP581Sensor(uint8_t address, TwoWire *wire)
-    : i2c_address(address), wire(wire), bufferIndex(0)
+    :i2c_address(address), wire(wire), bufferIndex(0)
 {
 
     std::fill(std::begin(pressureBuffer), std::end(pressureBuffer), 0.0f);
 }
 
-const bool BMP581Sensor::setup()
+bool BMP581Sensor::setup()
 {
     if (bmp.beginI2C(i2c_address, *wire) != BMP5_OK) return 0;
     return 1;
@@ -79,53 +79,47 @@ void BMP581Sensor::calibrate()
 {
     // Implement calibration if necessary
 }
-
-const BMPData BMP581Sensor::readData() const
-{
+BMPData BMP581Sensor::readData() {
     BMPData data{0,0};
-    if (bmp.getSensorData(&data) == BMP5_OK) { return data; }
-    else { return BMPData{0, 0}; }
-}
+    bmp5_sensor_data sensorData;
 
-
-const float BMP581Sensor::readPressure() {
-    BMPData data{0,0};
-    if (bmp.getSensorData(&data) == BMP5_OK) { 
-        if (bufferSize == 10) {
-            // Subtract the value that is being overwritten from the sum
-            pressureSum -= pressureBuffer[bufferIndex];
-        } else {
-            bufferSize++;
-        }
-
-        // Add the new pressure reading to the buffer and update the sum
-        pressureBuffer[bufferIndex] = data.pressure;
-        pressureSum += data.pressure;
-
-        // Update the buffer index in a circular manner
-        bufferIndex = (bufferIndex + 1) % 10;
-
-        return data.pressure; 
-    } else { 
-        return 0; 
+    if (bmp.getSensorData(&sensorData) == BMP5_OK) {
+        data.pressure = sensorData.pressure;
+        data.temperature = sensorData.temperature;
+        return data;
+    } else {
+        return BMPData{0, 0};
     }
 }
-const float BMP581Sensor::getPressureFiltered() const {
-    if (bufferSize == 0) return 0;
-    return pressureSum / bufferSize;
+
+float BMP581Sensor::readPressure() {
+    bmp5_sensor_data sensorData;
+    if (bmp.getSensorData(&sensorData) == BMP5_OK) {
+        float pressure = sensorData.pressure;
+
+        pressureSum -= pressureBuffer[bufferIndex];
+        pressureBuffer[bufferIndex] = pressure;
+        pressureSum += pressure;
+
+        bufferIndex = (bufferIndex + 1) % bufferSize;
+
+        if (samplesCollected < bufferSize) {
+            samplesCollected++;
+        }
+
+        return pressure;
+    } else {
+        return 0.0f;
+    }
 }
 
-const float BMP581Sensor::readTemperature() const{
-    BMPData data{0,0};
-    if (bmp.getSensorData(&data) == BMP5_OK) { return data.temperature; }
-    else { return 0; }
+const float BMP581Sensor::readTemperature() const {
+    BMPData data = readData();
+    return data.temperature;
 }
 
 void BMP581Sensor::enableFilteringAndOversampling() {
-    //these settings should be adjusted manually according to requirements
-    bmp.setPressureOversampling(BMP5_OVERSAMPLING_16X);
-    bmp.setTemperatureOversampling(BMP5_OVERSAMPLING_2X);
-
-    // Enable IIR filter
-    bmp.setIIRFilterCoefficient(BMP5_IIR_FILTER_COEFF_7);
+    // bmp.setOversamplingPressure(BMP5_OVERSAMPLING_16X);
+    // bmp.setOversamplingTemperature(BMP5_OVERSAMPLING_2X);
+    bmp.setFilterConfig(BMP5_IIR_FILTER_COEFF_7);
 }

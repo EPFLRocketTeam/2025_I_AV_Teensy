@@ -8,6 +8,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+
 // Structure to hold BNO055 sensor data
 struct BNO055Data
 {
@@ -29,17 +30,17 @@ class BNO055Sensor : public Sensor
 public:
     BNO055Sensor(uint8_t address, TwoWire *wire);
 
-    void setup() override;
+    bool setup() override;
     void calibrate() override;
 
     const bool updateCalStatus();
     void displayCalStatus();
 
-    const BNO055Data readData() const;
+    BNO055Data readData();
 
-    const imu::Vector<3> readAccelRaw() const;
-    const imu::Vector<3> readGyroRaw() const;
-    const imu::Vector<3> readMagnetometerRaw() const;
+    imu::Vector<3> readAccelRaw();
+    imu::Vector<3> readGyroRaw();
+    imu::Vector<3> readMagnetometerRaw();
 
 private:
     Adafruit_BNO055 bno;
@@ -54,29 +55,28 @@ struct BMPData{
     float pressure;
     float temperature;
 };
-
-class BMP581Sensor : public Sensor
-{
+// BMP581Sensor Class
+class BMP581Sensor : public Sensor {
 public:
     BMP581Sensor(uint8_t address, TwoWire *wire);
 
-    const bool setup() override;
+    bool setup() override;
     void calibrate() override;
-    BMPData readData() const;
-    const float readPressure();
+    BMPData readData();
+    float readPressure();
     const float readTemperature() const;
-    const float getPressureFiltered() const;
+    float getPressureFiltered() const;
     void enableFilteringAndOversampling();
 
 private:
     BMP581 bmp;
     uint8_t i2c_address;
     TwoWire *wire;
-    //circular buffer for pressure average to cancel out noise
-    static constexpr int bufferSize = 10; 
+    static constexpr int bufferSize = 10;
     int bufferIndex;
     float pressureBuffer[bufferSize];
     float pressureSum;
+    int samplesCollected; 
 };
 
-#endif // SENSORS_H
+#endif //SENSORS_H
