@@ -1,28 +1,40 @@
 #include "Client.h"
 #include <cstring>
 
-Module::Module() = default;
+// ThreeFloatModule.cpp
+ThreeFloatModule::ThreeFloatModule() : value1(0.0f), value2(0.0f), value3(0.0f) {}
 
-void Module::generate_message(float value1, float value2, float value3, char *buffer) {
+void ThreeFloatModule::set_values(float v1, float v2, float v3) {
+    value1 = v1;
+    value2 = v2;
+    value3 = v3;
+}
+
+void ThreeFloatModule::generate_message(char *buffer) {
     std::memcpy(&buffer[0], &value1, sizeof(float));
     std::memcpy(&buffer[4], &value2, sizeof(float));
     std::memcpy(&buffer[8], &value3, sizeof(float));
 }
 
-void Module::unpack_message(const char *buffer, float &value1, float &value2, float &value3) {
+void ThreeFloatModule::unpack_message(const char *buffer) {
     std::memcpy(&value1, &buffer[0], sizeof(float));
     std::memcpy(&value2, &buffer[4], sizeof(float));
     std::memcpy(&value3, &buffer[8], sizeof(float));
 }
 
-TemplateModule::TemplateModule() = default;
+// OneFloatModule.cpp
+OneFloatModule::OneFloatModule() : value(0.0f) {}
 
-void TemplateModule::generate_message(float value1, float value2, float value3, char *buffer) {
-    Module::generate_message(value1, value2, value3, buffer);
+void OneFloatModule::set_value(float v) {
+    value = v;
 }
 
-void TemplateModule::unpack_message(const char *buffer, float &value1, float &value2, float &value3) {
-    Module::unpack_message(buffer, value1, value2, value3);
+void OneFloatModule::generate_message(char *buffer) {
+    std::memcpy(&buffer[0], &value, sizeof(float));
+}
+
+void OneFloatModule::unpack_message(const char *buffer) {
+    std::memcpy(&value, &buffer[0], sizeof(float));
 }
 
 void Manager::add_module(Module *module) {
@@ -34,20 +46,30 @@ void Manager::generate_combined_message(char identifier, char *combined_buffer) 
     int offset = 1;
     for (auto &module : modules) {
         char module_buffer[12];
-        float value1 = 1.0f, value2 = 2.0f, value3 = 3.0f;
-        module->generate_message(value1, value2, value3, module_buffer);
+        module->generate_message(module_buffer);
         std::memcpy(&combined_buffer[offset], module_buffer, 12);
         offset += 12;
     }
 }
 
-void Manager::unpack_combined_message(const char *combined_buffer, char &identifier, std::vector<std::tuple<float, float, float>> &values) {
+void Manager::unpack_combined_message(const char *combined_buffer, char &identifier, std::vector<std::vector<float>> &values) {
     identifier = combined_buffer[0];
     int offset = 1;
     for (auto &module : modules) {
-        float value1, value2, value3;
-        module->unpack_message(&combined_buffer[offset], value1, value2, value3);
-        values.emplace_back(value1, value2, value3);
-        offset += 12;
+        std::vector<float> module_values;
+        if (dynamic_cast<ThreeFloatModule*>(module)) {
+            float value1, value2, value3;
+            module->unpack_message(&combined_buffer[offset]);
+            module_values.push_back(value1);
+            module_values.push_back(value2);
+            module_values.push_back(value3);
+            offset += 12;
+        } else if (dynamic_cast<OneFloatModule*>(module)) {
+            float value;
+            module->unpack_message(&combined_buffer[offset]);
+            module_values.push_back(value);
+            offset += 4;
+        }
+        values.push_back(module_values);
     }
 }

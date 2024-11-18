@@ -1,29 +1,44 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <Arduino.h>
 #include <vector>
 #include <tuple>
+#include <cstring>
 
 class Module {
 public:
-    Module();
-    virtual void generate_message(float value1, float value2, float value3, char *buffer);
-    virtual void unpack_message(const char *buffer, float &value1, float &value2, float &value3);
+    virtual void generate_message(char *buffer) = 0;
+    virtual void unpack_message(const char *buffer) = 0;
 };
 
-class TemplateModule : public Module {
+class ThreeFloatModule : public Module {
 public:
-    TemplateModule();
-    void generate_message(float value1, float value2, float value3, char *buffer) override;
-    void unpack_message(const char *buffer, float &value1, float &value2, float &value3) override;
+    ThreeFloatModule();
+    void set_values(float value1, float value2, float value3);
+    void generate_message(char *buffer) override;
+    void unpack_message(const char *buffer) override;
+
+private:
+    float value1, value2, value3;
+};
+
+// OneFloatModule.h
+class OneFloatModule : public Module {
+public:
+    OneFloatModule();
+    void set_value(float value);
+    void generate_message(char *buffer) override;
+    void unpack_message(const char *buffer) override;
+
+private:
+    float value;
 };
 
 class Manager {
 public:
     void add_module(Module *module);
     void generate_combined_message(char identifier, char *combined_buffer);
-    void unpack_combined_message(const char *combined_buffer, char &identifier, std::vector<std::tuple<float, float, float>> &values);
+    void unpack_combined_message(const char *combined_buffer, char &identifier, std::vector<std::vector<float>> &values);
 
 private:
     std::vector<Module *> modules;
