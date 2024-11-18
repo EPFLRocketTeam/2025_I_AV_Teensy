@@ -1,82 +1,129 @@
-// Sensors.h
-#ifndef SENSORS_H
-#define SENSORS_H
+// Sensors.cpp
+#include "Sensors.h"
 
-#include <Arduino.h>
-#include <Wire.h>
-#include <SparkFun_BMP581_Arduino_Library.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BNO055.h>
-#include <utility/imumaths.h>
-// Structure to hold BNO055 sensor data
-struct BNO055Data
+// --------------------
+// BNO055Sensor Methods
+// --------------------
+BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire)
+    :bno(55, address, wire)
 {
-    imu::Vector<3> orientation;
-    imu::Vector<3> gyroscope;
-    imu::Vector<3> acceleration;
-};
+}
 
-class Sensor
+bool BNO055Sensor::setup()
 {
-public:
-    virtual bool setup() = 0;
-    virtual void calibrate() = 0;
-};
+    if (!bno.begin()) return 0;
+    delay(1000);
+    // bno.setExtCrystalUse(false);
+    updateCalStatus();
+    
+    return 1;
+}
 
-// BNO055 Sensor Class
-class BNO055Sensor : public Sensor
+const bool BNO055Sensor::updateCalStatus(){
+    bno.getCalibration(&system_cal_status,
+                        &gyro_cal_status, 
+                        &accel_cal_status, &mag_cal_status);
+    return system_cal_status > 0;
+}
+void BNO055Sensor::displayCalStatus(){
+//to do
+}
+
+void BNO055Sensor::calibrate()
 {
-public:
-    BNO055Sensor(uint8_t address, TwoWire *wire);
+    //if necessary, according adafruit guide, as soon as you turn it on, it already starts callibrating
+    //placeholder stupid calibration:
+    while (system_cal_status < 0){
+        updateCalStatus();
+        displayCalStatus();
+    }
+}
 
-    void setup() override;
-    void calibrate() override;
-
-    const bool updateCalStatus();
-    void displayCalStatus();
-
-    const BNO055Data readData() const;
-
-    const imu::Vector<3> readAccelRaw() const;
-    const imu::Vector<3> readGyroRaw() const;
-    const imu::Vector<3> readMagnetometerRaw() const;
-
-private:
-    Adafruit_BNO055 bno;
-    uint8_t system_cal_status;
-    uint8_t gyro_cal_status;
-    uint8_t accel_cal_status;
-    uint8_t mag_cal_status;
-};
-
-// BMP581 Sensor Class
-struct BMPData{
-    float pressure;
-    float temperature;
-};
-
-class BMP581Sensor : public Sensor
+BNO055Data BNO055Sensor::readData()
 {
-public:
-    BMP581Sensor(uint8_t address, TwoWire *wire);
+    imu::Vector<3> orient = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+    imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+    imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 
-    const bool setup() override;
-    void calibrate() override;
-    BMPData readData() const;
-    const float readPressure();
-    const float readTemperature() const;
-    const float getPressureFiltered() const;
-    void enableFilteringAndOversampling();
+    return BNO055Data{orient, gyro, accel};
+}
 
-private:
-    BMP581 bmp;
-    uint8_t i2c_address;
-    TwoWire *wire;
-    //circular buffer for pressure average to cancel out noise
-    static constexpr int bufferSize = 10; 
-    int bufferIndex;
-    float pressureBuffer[bufferSize];
-    float pressureSum;
-};
+imu::Vector<3> BNO055Sensor::readAccelRaw() {
+    return bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+}
+imu::Vector<3> BNO055Sensor::readGyroRaw() {
+    return bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+}
+imu::Vector<3> BNO055Sensor::readMagnetometerRaw() {
+    return bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+}
+// --------------------
+// BMP581Sensor Methods
+// --------------------
 
-#endif // SENSORS_H
+BMP581Sensor::BMP581Sensor(uint8_t address, TwoWire *wire)
+    :i2c_address(address), wire(wire), bufferIndex(0)
+{
+
+    std::fill(std::begin(pressureBuffer), std::end(pressureBuffer), 0.0f);
+}
+
+bool BMP581Sensor::setup()
+{
+    if (bmp.beginI2C(i2c_address, *wire) != BMP5_OK) return 0;
+    return 1;
+}
+
+void BMP581Sensor::calibrate()
+{
+    // Implement calibration if necessary
+}
+// readData() Method
+BMPData BMP581Sensor::readData() {
+    BMPData data{0,0};
+    bmp5_sensor_data sensorData;
+
+    if (bmp.getSensorData(&sensorData) == BMP5_OK) {
+        data.pressure = sensorData.pressure;
+        data.temperature = sensorData.temperature;
+        return data;
+    } else {
+        return BMPData{0, 0};
+    }
+}
+
+// readPressure() Method
+float BMP581Sensor::readPressure() {
+    bmp5_sensor_data sensorData;
+    if (bmp.getSensorData(&sensorData) == BMP5_OK) {
+        float pressure = sensorData.pressure;
+
+        pressureSum -= pressureBuffer[bufferIndex];
+        pressureBuffer[bufferIndex] = pressure;
+        pressureSum += pressure;
+
+        bufferIndex = (bufferIndex + 1) % bufferSize;
+
+        if (samplesCollected < bufferSize) {
+            samplesCollected++;
+        }
+
+        return pressure;
+    } else {
+        return 0.0f;
+    }
+}
+
+// readTemperature() Method
+const float BMP581Sensor::readTemperature() const {
+    BMPData data = readData();
+    return data.temperature;
+}
+
+// enableFilteringAndOversampling() Method
+void BMP581Sensor::enableFilteringAndOversampling() {
+    // Adjust the methods based on the library's API
+    // bmp.setOversamplingPressure(BMP5_OVERSAMPLING_16X);
+    // bmp.setOversamplingTemperature(BMP5_OVERSAMPLING_2X);
+    bmp.setFilterConfig(BMP5_IIR_FILTER_COEFF_7);
+}
