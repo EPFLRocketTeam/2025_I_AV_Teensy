@@ -1,4 +1,4 @@
-// Sensors.cpp
+// Sensors.cp// Senso// Sensors.cpp
 #include "Sensors.h"
 
 // --------------------
@@ -13,10 +13,9 @@ bool BNO055Sensor::setup()
 {
     if (!bno.begin()) return 0;
     delay(1000);
-    bno.setExtCrystalUse(true);
-
+    // bno.setExtCrystalUse(false);
     updateCalStatus();
-
+    
     return 1;
 }
 
@@ -34,7 +33,7 @@ void BNO055Sensor::calibrate()
 {
     //if necessary, according adafruit guide, as soon as you turn it on, it already starts callibrating
     //placeholder stupid calibration:
-    while (system_cal_status < 2){
+    while (system_cal_status < 0){
         updateCalStatus();
         displayCalStatus();
     }
@@ -79,6 +78,7 @@ void BMP581Sensor::calibrate()
 {
     // Implement calibration if necessary
 }
+// readData() Method
 BMPData BMP581Sensor::readData() {
     BMPData data{0,0};
     bmp5_sensor_data sensorData;
@@ -92,6 +92,7 @@ BMPData BMP581Sensor::readData() {
     }
 }
 
+// readPressure() Method
 float BMP581Sensor::readPressure() {
     bmp5_sensor_data sensorData;
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
@@ -113,12 +114,15 @@ float BMP581Sensor::readPressure() {
     }
 }
 
+// readTemperature() Method
 const float BMP581Sensor::readTemperature() const {
     BMPData data = readData();
     return data.temperature;
 }
 
+// enableFilteringAndOversampling() Method
 void BMP581Sensor::enableFilteringAndOversampling() {
+    // Adjust the methods based on the library's API
     // bmp.setOversamplingPressure(BMP5_OVERSAMPLING_16X);
     // bmp.setOversamplingTemperature(BMP5_OVERSAMPLING_2X);
     bmp.setFilterConfig(BMP5_IIR_FILTER_COEFF_7);
