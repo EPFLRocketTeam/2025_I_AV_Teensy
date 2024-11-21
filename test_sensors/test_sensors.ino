@@ -46,7 +46,6 @@ void setup()
     bmp.calibrate();
     Serial.println("Finished calibrating BMP");
 }
-
 void loop()
 {
     // Read data from BNO055 sensors
@@ -58,4 +57,3 @@ void loop()
     Serial.println("");
     delay(1000); // Adjust the delay as necessary
 }
-
