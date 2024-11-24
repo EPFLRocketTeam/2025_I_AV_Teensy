@@ -1,10 +1,25 @@
 #include "Sensors.h"
 
 const float Sensor::combineData(float m1, float m2, float m3) const {
+    float sum = m1 + m2 + m3;
+    int zeroCount = 0;
+    if (m1 == 0.0) zeroCount++;
+    if (m2 == 0.0) zeroCount++;
+    if (m3 == 0.0) zeroCount++;
+    if (zeroCount == 1){
+      return sum/2;
+    }
+    else if (zeroCount == 2){
+      return sum;
+    }
+    else if (zeroCount == 3) return 0.0;
+
+    //no readings are 0, all are valid 
+
     float mean = (m1 + m2 + m3) / 3.0;
     float variance = ((m1 - mean) * (m1 - mean) + (m2 - mean) * (m2 - mean) + (m3 - mean) * (m3 - mean)) / 2.0;
     float stdDev = sqrt(variance);
-    float threshold = 2 * stdDev;
+    float threshold = outlier_threshold * stdDev;
     //set threshold to some value manually after some tests ... 
     int outlierCount = 0;
     if (fabs(m1 - mean) > threshold) outlierCount++;
@@ -44,11 +59,11 @@ const float Sensor::calculateMedian(float a, float b, float c) const {
 // --------------------
 // BNO055Sensor Methods
 // --------------------
-BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire)
-    :bno(-1, address, wire)
+BNO055Sensor::BNO055Sensor(uint8_t address, TwoWire *wire, uint8_t _delay_time, uint8_t _calibration_threshold, float _outlier_threshold)
+    :bno(-1, address, wire), delay_time(_delay_time), calibration_threshold(_calibration_threshold), outlier_threshold(_outlier_threshold)
 {}
 
-bool BNO055Sensor::setup()
+const bool BNO055Sensor::setup()
 {
     if (!bno.begin()) return 0;
     delay(1000);
@@ -72,36 +87,36 @@ void BNO055Sensor::calibrate()
 {
     //if necessary, according adafruit guide, as soon as you turn it on, it already starts callibrating
     //placeholder stupid calibration:
-    while (system_cal_status < 0){
+    while (system_cal_status < calibration_threshold){ // 0 is no calibration, 3 is max, might take some time to calibrate, use 2 i guess, might not be necesssary if no fusion
         updateCalStatus();
         displayCalStatus();
     }
 }
 
-BNO055Data BNO055Sensor::readData()
+// const std::array<float, 6> BNO055Sensor::readData()
+// {
+//     imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+//     imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+
+//     return std::array<float, 6> {gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]};
+// }
+
+const std::array<float, 6> BNO055Sensor::readData()
 {
-    imu::Vector<3> orient = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+    delay(delay_time);
     imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+    delay(delay_time);
     imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 
-    return BNO055Data{orient, gyro, accel};
+    return std::array<float, 6>{gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]};
 }
 
-imu::Vector<3> BNO055Sensor::readAccelRaw() {
-    return bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-}
-imu::Vector<3> BNO055Sensor::readGyroRaw() {
-    return bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-}
-imu::Vector<3> BNO055Sensor::readMagnetometerRaw() {
-    return bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
-}
 
-TripleBNO055::TripleBNO055(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2)
-    : sensor1(address1, wire), sensor2(address2, wire), sensor3(address3, wire2)
+TripleBNO055::TripleBNO055(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2, uint8_t delay_time, uint8_t calibration_threshold, float outlier_threshold)
+    : sensor1(address1, wire, delay_time, calibration_threshold, outlier_threshold), sensor2(address2, wire, delay_time, calibration_threshold, outlier_threshold), sensor3(address3, wire2, delay_time, calibration_threshold, outlier_threshold)
 {}
 
-bool TripleBNO055::setup() {
+const bool TripleBNO055::setup() {
     bool success1 = sensor1.setup();
     bool success2 = sensor2.setup();
     bool success3 = sensor3.setup();
@@ -122,75 +137,40 @@ void TripleBNO055::displayCalStatus() const{
 //to do
 }
 
-std::array<float, 9> TripleBNO055::read_data(){
-    std::array<BNO055Data, 3> data = readAllData();        
-    return std::array<float, 9> {
-        combineData(data[0].acceleration.x(), data[1].acceleration.x(), data[2].acceleration.x()), 
-        combineData(data[0].acceleration.y(), data[1].acceleration.y(), data[2].acceleration.y()), 
-        combineData(data[0].acceleration.z(), data[1].acceleration.z(), data[2].acceleration.z()), 
-        combineData(data[0].orientation.x(), data[1].orientation.x(), data[2].orientation.x()), 
-        combineData(data[0].orientation.y(), data[1].orientation.y(), data[2].acceleration.y()), 
-        combineData(data[0].orientation.z(), data[1].orientation.z(), data[2].orientation.z()), 
-        combineData(data[0].gyroscope.x(), data[1].gyroscope.x(), data[2].gyroscope.x()), 
-        combineData(data[0].gyroscope.y(), data[1].gyroscope.y(), data[2].gyroscope.y()), 
-        combineData(data[0].gyroscope.z(), data[1].gyroscope.z(), data[2].gyroscope.z()), 
+const std::array<float, 6> TripleBNO055::read_data(){
+    std::array<float, 6> data1 = sensor1.readData();
+    std::array<float, 6> data2 = sensor2.readData();
+    std::array<float, 6> data3 = sensor3.readData();
+          
+    return std::array<float, 6> {
+        combineData(data1[0], data2[0], data3[0]), 
+        combineData(data1[1], data2[1], data3[1]), 
+        combineData(data1[2], data2[2], data3[2]), 
+        combineData(data1[3], data2[3], data3[3]), 
+        combineData(data1[4], data2[4], data3[4]), 
+        combineData(data1[5], data2[5], data3[5])
     };
 }
 
-std::array<BNO055Data, 3> TripleBNO055::readAllData(){
-    return std::array<BNO055Data, 3> {sensor1.readData(), sensor2.readData(), sensor3.readData()};    
-}
-
-
-BNO055Data TripleBNO055::readSensorData(uint8_t index) {
-    return getSensor(index).readData();
-}
-
-imu::Vector<3> TripleBNO055::readAccelRaw(uint8_t index) {
-    return getSensor(index).readAccelRaw();
-}
-
-imu::Vector<3> TripleBNO055::readGyroRaw(uint8_t index) {
-    return getSensor(index).readGyroRaw();
-}
-
-imu::Vector<3> TripleBNO055::readMagnetometerRaw(uint8_t index) {
-    return getSensor(index).readMagnetometerRaw();
-}
-
-BNO055Sensor& TripleBNO055::getSensor(uint8_t index) {
-    switch (index) {
-        case 0:
-            return sensor1;
-        case 1:
-            return sensor2;
-        case 2:
-            return sensor3;
-        default:
-            return sensor1;
-    }
-}
-
-void TripleBNO055::print_data(const std::array<float, 9>& bno_data) const {
+void TripleBNO055::print_data(const std::array<float, 6>& bno_data) const {
   Serial.print("<");
-  for (int i(0); i < 9 - 1; ++i) {
+  for (int i(0); i < 5; ++i) {
       Serial.print(bno_data[i]);
       Serial.print(",");
   }
-  Serial.print(bno_data[9-1]);
+  Serial.print(bno_data[5]);
   Serial.print(">");
 }
 // --------------------
 // BMP581Sensor Methods
 // --------------------
 
-BMP581Sensor::BMP581Sensor(uint8_t address, TwoWire *wire)
-    :i2c_address(address), wire(wire), bufferIndex(0)
+BMP581Sensor::BMP581Sensor(uint8_t address, TwoWire *wire, uint8_t _delay_time, float _outlier_threshold)
+    :i2c_address(address), wire(wire), delay_time(_delay_time), outlier_threshold(_outlier_threshold)
 {
-    std::fill(std::begin(pressureBuffer), std::end(pressureBuffer), 0.0f);
 }
 
-bool BMP581Sensor::setup()
+const bool BMP581Sensor::setup()
 {
     if (bmp.beginI2C(i2c_address, *wire) != BMP5_OK) return 0;
     return 1;
@@ -201,10 +181,10 @@ void BMP581Sensor::calibrate()
     // Implement calibration if necessary
 }
 // readData() Method
-BMPData BMP581Sensor::readData() {
+const BMPData BMP581Sensor::readData() {
     BMPData data{0,0};
     bmp5_sensor_data sensorData;
-
+    delay(delay_time);
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
         data.pressure = sensorData.pressure;
         data.temperature = sensorData.temperature;
@@ -215,23 +195,11 @@ BMPData BMP581Sensor::readData() {
 }
 
 
-// readPressure() Method
-float BMP581Sensor::readPressure() {
+const float BMP581Sensor::readPressure() const{
     bmp5_sensor_data sensorData;
+    delay(delay_time);
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
-        float pressure = sensorData.pressure;
-
-        pressureSum -= pressureBuffer[bufferIndex];
-        pressureBuffer[bufferIndex] = pressure;
-        pressureSum += pressure;
-
-        bufferIndex = (bufferIndex + 1) % bufferSize;
-
-        if (samplesCollected < bufferSize) {
-            samplesCollected++;
-        }
-
-        return pressure;
+        return sensorData.pressure;
     } else {
         return 0.0f;
     }
@@ -239,8 +207,13 @@ float BMP581Sensor::readPressure() {
 
 // readTemperature() Method
 const float BMP581Sensor::readTemperature() const {
-    BMPData data = readData();
-    return data.temperature;
+    bmp5_sensor_data sensorData;
+    delay(delay_time);
+    if (bmp.getSensorData(&sensorData) == BMP5_OK) {
+        return sensorData.temperature;
+    } else {
+        return 0.0f;
+    }
 }
 
 // enableFilteringAndOversampling() Method
@@ -252,10 +225,10 @@ void BMP581Sensor::enableFilteringAndOversampling() {
 }
 
 
-TripleBMP581::TripleBMP581(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2)
-    : sensor1(address1, wire), sensor2(address2, wire), sensor3(address3, wire2) {}
+TripleBMP581::TripleBMP581(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2, uint8_t delay_time, float _outlier_threshold)
+    : sensor1(address1, wire, delay_time, outlier_threshold), sensor2(address2, wire, delay_time, outlier_threshold), sensor3(address3, wire2, delay_time, outlier_threshold) {}
 
-bool TripleBMP581::setup() {
+const bool TripleBMP581::setup() {
     bool success1 = sensor1.setup();
     bool success2 = sensor2.setup();
     bool success3 = sensor3.setup();
@@ -276,33 +249,24 @@ void TripleBMP581::displayCalStatus() const{
 //to do
 }
 
-std::array<float, 2> TripleBMP581::read_data(){
-    std::array<BMPData, 3> data = readAllData();        
+const std::array<float, 2> TripleBMP581::read_data(){
+    BMPData data1 = sensor1.readData();
+    BMPData data2 = sensor2.readData();
+    BMPData data3 = sensor3.readData();
+
     return std::array<float, 2> {
-        combineData(data[0].pressure, data[1].pressure, data[2].pressure), 
-        combineData(data[0].temperature, data[1].temperature, data[2].temperature), 
+        combineData(data1.pressure, data2.pressure, data3.pressure), 
+        combineData(data1.temperature, data2.temperature, data3.temperature), 
     };
 }
-std::array<BMPData, 3> TripleBMP581::readAllData(){
-    return std::array<BMPData, 3> {sensor1.readData(), sensor2.readData(), sensor3.readData()};    
+
+const float TripleBMP581::read_pressure(){
+    float pres1 = sensor1.readPressure();
+    float pres2 = sensor2.readPressure();
+    float pres3 = sensor3.readPressure();
+    return combineData(pres1, pres2, pres3);   
 }
 
-BMPData TripleBMP581::readSensorData(uint8_t index) {
-    return getSensor(index).readData();
-}
-
-BMP581Sensor& TripleBMP581::getSensor(uint8_t index) {
-    switch (index) {
-        case 0:
-            return sensor1;
-        case 1:
-            return sensor2;
-        case 2:
-            return sensor3;
-        default:
-            return sensor1;
-    }
-}
 void TripleBMP581::print_data(const std::array<float, 2>& bno_data) const {
   Serial.print("<");
   for (int i(0); i < 2 - 1; ++i) {
@@ -312,4 +276,3 @@ void TripleBMP581::print_data(const std::array<float, 2>& bno_data) const {
   Serial.print(bno_data[2-1]);
   Serial.print(">");
 }
-
