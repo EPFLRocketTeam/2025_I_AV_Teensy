@@ -21,6 +21,9 @@ class Sensor
 public:
     virtual bool setup() = 0;
     virtual void calibrate() = 0;
+protected:
+    const float calculateMedian(float a, float b, float c) const;
+    const float combineData(float m1, float m2, float m3) const;
 };
 
 // BNO055 Sensor Class
@@ -33,9 +36,10 @@ public:
     void calibrate() override;
 
     const bool updateCalStatus();
-    void displayCalStatus();
+    void displayCalStatus() const;
 
     BNO055Data readData();
+    BNO055Data readRawData();
 
     imu::Vector<3> readAccelRaw();
     imu::Vector<3> readGyroRaw();
@@ -49,6 +53,33 @@ private:
     uint8_t mag_cal_status;
 };
 
+
+class TripleBNO055 : public Sensor {
+public:
+    TripleBNO055(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2);
+
+    bool setup() override;
+    void calibrate() override;
+    void displayCalStatus() const;
+    void displayStatus() const;
+
+    // Method to read data from all three sensors
+    std::array<float, 9> read_data();
+    void print_data(const std::array<float, 9>&) const;
+
+private:
+    BNO055Sensor sensor1;
+    BNO055Sensor sensor2;
+    BNO055Sensor sensor3;
+    std::array<BNO055Data, 3> readAllData();
+    //getter for specific sensorreadDa
+    BNO055Sensor& getSensor(uint8_t index);
+    // Individual methods to access specific sensors
+    BNO055Data readSensorData(uint8_t index);
+    imu::Vector<3> readAccelRaw(uint8_t index);
+    imu::Vector<3> readGyroRaw(uint8_t index);
+    imu::Vector<3> readMagnetometerRaw(uint8_t index);
+};
 // BMP581 Sensor Class
 struct BMPData{
     float pressure;
@@ -78,5 +109,27 @@ private:
     int samplesCollected; // Added this variable
 };
 
-#endif
 
+class TripleBMP581 : public Sensor {
+public:
+    TripleBMP581(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2);
+
+    bool setup() override;
+    void calibrate() override;
+    void displayCalStatus() const;
+    void displayStatus() const;
+    // Method to read data from all three sensors
+    std::array<float, 2> read_data();
+    void print_data(const std::array<float, 2>&) const;
+
+private:
+    BMP581Sensor sensor1;
+    BMP581Sensor sensor2;
+    BMP581Sensor sensor3;
+    std::array<BMPData, 3> readAllData();
+    //getter for specific sensor
+    BMP581Sensor& getSensor(uint8_t index);
+    // Individual methods to access specific sensors
+    BMPData readSensorData(uint8_t index);
+};
+dif
