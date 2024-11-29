@@ -101,7 +101,7 @@ void loop() {
     // Output combined message over SoftwareSerial
     for (int i = 0; i < length; ++i) {
         if (combined_message[i] < 16) Serial.print("0");
-        mySerial.print((unsigned char)combined_message[i], HEX);
+        mySerial.write(combined_message[i]);
     }
     mySerial.println();
 
