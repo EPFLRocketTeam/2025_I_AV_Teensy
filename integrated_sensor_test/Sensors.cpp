@@ -7,9 +7,7 @@ const float Sensor::combineData(float m1, float m2, float m3) const {
     if (m2 == 0.0) zeroCount++;
     if (m3 == 0.0) zeroCount++;
     if (zeroCount == 1){
-      return sum/2;
-    }
-    else if (zeroCount == 2){
+      return sum/2;   else if (zeroCount == 2){
       return sum;
     }
     else if (zeroCount == 3) return 0.0;

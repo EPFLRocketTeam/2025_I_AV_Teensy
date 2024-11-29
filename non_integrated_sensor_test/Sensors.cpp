@@ -96,9 +96,9 @@ void BNO055Sensor::calibrate()
 
 const std::array<float, 6> BNO055Sensor::readData()
 {
-    delay(delay_time);
+     
     imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-    delay(delay_time);
+     
     imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 
     return std::array<float, 6>{gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]};
@@ -138,7 +138,7 @@ const std::array<float, 6> TripleBNO055::read_data(){
     bool allZeros2 = checkAllZeros6Vars(data2);
     bool allZeros3 = checkAllZeros6Vars(data3);
     if (allZeros1){
-        if (allZeros2)){
+        if (allZeros2){
             return data3;
         }
         else if (allZeros3){
@@ -220,7 +220,7 @@ void BMP581Sensor::calibrate()
 const BMPData BMP581Sensor::readData() {
     BMPData data{0,0};
     bmp5_sensor_data sensorData;
-    delay(delay_time);
+     
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
         data.pressure = sensorData.pressure;
         data.temperature = sensorData.temperature;
@@ -230,10 +230,19 @@ const BMPData BMP581Sensor::readData() {
     }
 }
 
+const std::array<float, 2> BMP581Sensor::read_data() {
+    bmp5_sensor_data sensorData;
+    if (bmp.getSensorData(&sensorData) == BMP5_OK) {
+        return std::array<float , 2>{sensorData.pressure, sensorData.temperature};
+    } else {
+        return std::array<float , 2>{0.0, 0.0};
+    }
+}
+
 
 const float BMP581Sensor::readPressure() const{
     bmp5_sensor_data sensorData;
-    delay(delay_time);
+     
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
         return sensorData.pressure;
     } else {
@@ -244,7 +253,7 @@ const float BMP581Sensor::readPressure() const{
 // readTemperature() Method
 const float BMP581Sensor::readTemperature() const {
     bmp5_sensor_data sensorData;
-    delay(delay_time);
+     
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
         return sensorData.temperature;
     } else {
@@ -286,21 +295,21 @@ void TripleBMP581::displayCalStatus() const{
 }
 
 const std::array<float, 2> TripleBMP581::read_data(){
-    BMPData data1 = sensor1.readData();
-    BMPData data2 = sensor2.readData();
-    BMPData data3 = sensor3.readData();
-    bool allZeros1 = checkAllZeros6Vars(data1);
-    bool allZeros2 = checkAllZeros6Vars(data2);
-    bool allZeros3 = checkAllZeros6Vars(data3);
+    std::array<float, 2> data1 = sensor1.read_data();
+    std::array<float, 2> data2 = sensor2.read_data();
+    std::array<float, 2> data3 = sensor3.read_data();
+    bool allZeros1 = checkAllZeros2Vars(data1);
+    bool allZeros2 = checkAllZeros2Vars(data2);
+    bool allZeros3 = checkAllZeros2Vars(data3);
     if (allZeros1){
-        if (allZeros2)){
+        if (allZeros2){
             return data3;
         }
         else if (allZeros3){
             return data2;
         }
         else {
-            return std::array<float, 6> {
+            return std::array<float, 2> {
                 (data2[0]+data3[0])/2, 
                     (data2[1]+data3[1])/2, 
             };
@@ -311,19 +320,19 @@ const std::array<float, 2> TripleBMP581::read_data(){
             return data1;
         }
         else {
-            return std::array<float, 6> {
+            return std::array<float, 2> {
                 (data1[0]+data3[0])/2, 
                     (data1[1]+data3[1])/2, 
             };
         }
     }
     else if (allZeros3){
-        return std::array<float, 6> {
+        return std::array<float, 2> {
             (data1[0]+data2[0])/2, 
                 (data1[1]+data2[1])/2, 
         };
     }
-    return std::array<float, 6> {
+    return std::array<float, 2> {
         combineData(data1[0], data2[0], data3[0]), 
             combineData(data1[1], data2[1], data3[1]), 
     };

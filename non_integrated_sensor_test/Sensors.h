@@ -89,6 +89,7 @@ public:
     const bool setup() override;
     void calibrate() override;
     const BMPData readData(); // Removed 'const'
+    const std::array<float, 2> BMP581Sensor::read_data();
     const float readPressure() const;
     const float readTemperature() const;
     void enableFilteringAndOversampling();
