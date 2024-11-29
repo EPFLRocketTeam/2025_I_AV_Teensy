@@ -25,6 +25,8 @@ public:
 protected:
     const float calculateMedian(float a, float b, float c) const;
     virtual const float combineData(float m1, float m2, float m3) const;
+    const bool checkAllZeros2Vars(std::array<float, 2>) const;
+    const bool checkAllZeros6Vars(std::array<float, 6>) const;
     float outlier_threshold;
 };
 

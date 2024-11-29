@@ -2,20 +2,6 @@
 
 const float Sensor::combineData(float m1, float m2, float m3) const {
     float sum = m1 + m2 + m3;
-    int zeroCount = 0;
-    if (m1 == 0.0) zeroCount++;
-    if (m2 == 0.0) zeroCount++;
-    if (m3 == 0.0) zeroCount++;
-    if (zeroCount == 1){
-      return sum/2;
-    }
-    else if (zeroCount == 2){
-      return sum;
-    }
-    else if (zeroCount == 3) return 0.0;
-
-    //no readings are 0, all are valid 
-
     float mean = (m1 + m2 + m3) / 3.0;
     float variance = ((m1 - mean) * (m1 - mean) + (m2 - mean) * (m2 - mean) + (m3 - mean) * (m3 - mean)) / 2.0;
     float stdDev = sqrt(variance);
@@ -55,6 +41,13 @@ const float Sensor::calculateMedian(float a, float b, float c) const {
     } else {
         return c;
     }
+}
+
+const bool Sensor::checkAllZeros2Vars(std::array<float, 2> arr) const {
+    return (arr[0] == arr[1] == 0.0);
+}
+const bool Sensor::checkAllZeros6Vars(std::array<float, 6> arr) const {
+    return (arr[0] == arr[1] == arr[2] == arr[3] == arr[4] == arr[5] == 0.0);
 }
 // --------------------
 // BNO055Sensor Methods
@@ -141,17 +134,60 @@ const std::array<float, 6> TripleBNO055::read_data(){
     std::array<float, 6> data1 = sensor1.readData();
     std::array<float, 6> data2 = sensor2.readData();
     std::array<float, 6> data3 = sensor3.readData();
-          
-    if (data1[0] == data1[1] == data1[2] == data1[3] == data1[4] == data1[5] == 0.0){
-      //don't have sensor1
+    bool allZeros1 = checkAllZeros6Vars(data1);
+    bool allZeros2 = checkAllZeros6Vars(data2);
+    bool allZeros3 = checkAllZeros6Vars(data3);
+    if (allZeros1){
+        if (allZeros2)){
+            return data3;
+        }
+        else if (allZeros3){
+            return data2;
+        }
+        else {
+            return std::array<float, 6> {
+                (data2[0]+data3[0])/2, 
+                    (data2[1]+data3[1])/2, 
+                    (data2[2]+data3[2])/2, 
+                    (data2[3]+data3[3])/2, 
+                    (data2[4]+data3[4])/2, 
+                    (data2[5]+data3[5])/2, 
+            };
+
+        }
+    }
+    else if (allZeros2){
+        if (allZeros3){
+            return data1;
+        }
+        else {
+            return std::array<float, 6> {
+                (data1[0]+data3[0])/2, 
+                    (data1[1]+data3[1])/2, 
+                    (data1[2]+data3[2])/2, 
+                    (data1[3]+data3[3])/2, 
+                    (data1[4]+data3[4])/2, 
+                    (data1[5]+data3[5])/2, 
+            };
+        }
+    }
+    else if (allZeros3){
+        return std::array<float, 6> {
+            (data1[0]+data2[0])/2, 
+                (data1[1]+data2[1])/2, 
+                (data1[2]+data2[2])/2, 
+                (data1[3]+data2[3])/2, 
+                (data1[4]+data2[4])/2, 
+                (data1[5]+data2[5])/2, 
+        };
     }
     return std::array<float, 6> {
         combineData(data1[0], data2[0], data3[0]), 
-        combineData(data1[1], data2[1], data3[1]), 
-        combineData(data1[2], data2[2], data3[2]), 
-        combineData(data1[3], data2[3], data3[3]), 
-        combineData(data1[4], data2[4], data3[4]), 
-        combineData(data1[5], data2[5], data3[5])
+            combineData(data1[1], data2[1], data3[1]), 
+            combineData(data1[2], data2[2], data3[2]), 
+            combineData(data1[3], data2[3], data3[3]), 
+            combineData(data1[4], data2[4], data3[4]), 
+            combineData(data1[5], data2[5], data3[5])
     };
 }
 
@@ -242,21 +278,54 @@ void TripleBMP581::calibrate() {
 }
 
 void TripleBMP581::displayStatus() const{
-//to do
+    //to do
 }
 
 void TripleBMP581::displayCalStatus() const{
-//to do
+    //to do
 }
 
 const std::array<float, 2> TripleBMP581::read_data(){
     BMPData data1 = sensor1.readData();
     BMPData data2 = sensor2.readData();
     BMPData data3 = sensor3.readData();
-
-    return std::array<float, 2> {
-        combineData(data1.pressure, data2.pressure, data3.pressure), 
-        combineData(data1.temperature, data2.temperature, data3.temperature), 
+    bool allZeros1 = checkAllZeros6Vars(data1);
+    bool allZeros2 = checkAllZeros6Vars(data2);
+    bool allZeros3 = checkAllZeros6Vars(data3);
+    if (allZeros1){
+        if (allZeros2)){
+            return data3;
+        }
+        else if (allZeros3){
+            return data2;
+        }
+        else {
+            return std::array<float, 6> {
+                (data2[0]+data3[0])/2, 
+                    (data2[1]+data3[1])/2, 
+            };
+        }
+    }
+    else if (allZeros2){
+        if (allZeros3){
+            return data1;
+        }
+        else {
+            return std::array<float, 6> {
+                (data1[0]+data3[0])/2, 
+                    (data1[1]+data3[1])/2, 
+            };
+        }
+    }
+    else if (allZeros3){
+        return std::array<float, 6> {
+            (data1[0]+data2[0])/2, 
+                (data1[1]+data2[1])/2, 
+        };
+    }
+    return std::array<float, 6> {
+        combineData(data1[0], data2[0], data3[0]), 
+            combineData(data1[1], data2[1], data3[1]), 
     };
 }
 
