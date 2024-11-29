@@ -95,6 +95,7 @@ void loop() {
     bmp_temp.set_value(bmp_data[1]);
 
     // Generate combined message
+
     char combined_message[length];
     manager.generate_combined_message(0x01, combined_message);
     Serial.println(combined_message);
