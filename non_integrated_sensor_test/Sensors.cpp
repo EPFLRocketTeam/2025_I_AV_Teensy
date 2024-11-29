@@ -142,6 +142,9 @@ const std::array<float, 6> TripleBNO055::read_data(){
     std::array<float, 6> data2 = sensor2.readData();
     std::array<float, 6> data3 = sensor3.readData();
           
+    if (data1[0] == data1[1] == data1[2] == data1[3] == data1[4] == data1[5] == 0.0){
+      //don't have sensor1
+    }
     return std::array<float, 6> {
         combineData(data1[0], data2[0], data3[0]), 
         combineData(data1[1], data2[1], data3[1]), 

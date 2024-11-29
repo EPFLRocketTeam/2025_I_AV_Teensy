@@ -25,8 +25,7 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Initializing serial communication");
     initWire();
-
-    bool bno_status = bno.setup();
+ool bno_status = bno.setup();
     bno.displayStatus();
     Serial.println("Finished initializing BNO");
 
