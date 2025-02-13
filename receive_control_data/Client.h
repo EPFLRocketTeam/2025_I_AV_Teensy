@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <tuple>
+#include <string>
 #include <cstring>
 #include <unordered_map>
 
@@ -42,11 +43,12 @@ private:
 class Manager {
 public:
     void set_module_configuration(char identifier, const std::vector<Module *> &modules);
-    void generate_combined_message(char identifier, char *combined_buffer);
-    void unpack_combined_message(const char *combined_buffer, char &identifier, std::vector<std::vector<float>> &values);
+    void generate_combined_message(char identifier, char *combined_buffer, std::string &encoded_message);
+    void unpack_combined_message(const std::string &encoded_buffer, char &identifier, std::vector<std::vector<float>> &values);
 
 private:
     std::unordered_map<char, std::vector<Module *>> module_configurations;
 };
+
 
 #endif // CLIENT_H
