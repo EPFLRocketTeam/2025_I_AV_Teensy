@@ -7,7 +7,7 @@ ThreeFloatModule three_float_module2;
 OneFloatModule one_float_module1;
 OneFloatModule one_float_module2;
 Manager manager;
-int length = 41;    // 1 byte for identifier, 24 bytes for two ThreeFloatModules, 8 bytes for two OneFloatModules
+int length = 33;    // 1 byte for identifier, 24 bytes for two ThreeFloatModules, 8 bytes for two OneFloatModules
 
 void setup() {
     manager.set_module_configuration(0x01, {&three_float_module1, &three_float_module2, &one_float_module1, &one_float_module2});
