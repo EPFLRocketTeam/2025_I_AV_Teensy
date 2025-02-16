@@ -8,18 +8,11 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 // Structure to hold BNO055 sensor data
-struct BNO055Data
-{
-    imu::Vector<3> orientation;
-    imu::Vector<3> gyroscope;
-    imu::Vector<3> acceleration;
-};
 
 class Sensor
 {
 public:
     virtual const bool setup() = 0;
-    virtual void calibrate() = 0;
     virtual const float get_outlier_threshold() const { return outlier_threshold;}
     virtual void set_outlier_threshold(float _outlier_threshold) { outlier_threshold = _outlier_threshold;}
 protected:
@@ -35,10 +28,9 @@ public:
     BNO055Sensor(uint8_t address, TwoWire *wire, uint8_t delay_time=10, uint8_t calibration_threshold=0, float outlier_threshold = 2);
 
     const bool setup() override;
-    void calibrate() override;
+    void calibrate();
 
     const bool updateCalStatus();
-    void displayCalStatus() const;
 
     const std::array<float, 6> readData();
 
@@ -60,9 +52,7 @@ public:
     TripleBNO055(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2, uint8_t delay_time=10, uint8_t calibration_threshold=0, float outlier_threshold = 2);
 
     const bool setup() override;
-    void calibrate() override;
-    void displayCalStatus() const;
-    void displayStatus() const;
+    void calibrate();
 
     // Method to read data from all three sensors
     const std::array<float, 6> read_data();
@@ -85,8 +75,7 @@ public:
     BMP581Sensor(uint8_t address, TwoWire *wire, uint8_t delay_time=20, float outlier_threshold = 2);
 
     const bool setup() override;
-    void calibrate() override;
-    const BMPData readData(); // Removed 'const'
+    const std::array<float, 2> readData();
     const float readPressure() const;
     const float readTemperature() const;
     void enableFilteringAndOversampling();
@@ -106,9 +95,6 @@ public:
     TripleBMP581(uint8_t address1, uint8_t address2, uint8_t address3, TwoWire *wire, TwoWire *wire2, uint8_t delay_time = 20, float outlier_threshold = 2);
 
     const bool setup() override;
-    void calibrate() override;
-    void displayCalStatus() const;
-    void displayStatus() const;
     // Method to read data from all three sensors
     const std::array<float, 2> read_data();
     const float read_pressure();
