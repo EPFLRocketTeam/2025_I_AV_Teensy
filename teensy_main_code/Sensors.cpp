@@ -75,29 +75,18 @@ const bool BNO055Sensor::updateCalStatus(){
     bno.getCalibration(&system_cal_status,
                         &gyro_cal_status, 
                         &accel_cal_status, &mag_cal_status);
-    return system_cal_status > 0;
-}
-void BNO055Sensor::displayCalStatus() const{
-//to do
+    return system_cal_status;
 }
 
 void BNO055Sensor::calibrate()
 {
     //if necessary, according adafruit guide, as soon as you turn it on, it already starts callibrating
-    //placeholder stupid calibration:
+    Serial.println("Calibrating BNO055 sensor...:);
     while (system_cal_status < calibration_threshold){ // 0 is no calibration, 3 is max, might take some time to calibrate, use 2 i guess, might not be necesssary if no fusion
         updateCalStatus();
-        displayCalStatus();
     }
+    Serial.println("BNO055 sensor calibrated.");
 }
-
-// const std::array<float, 6> BNO055Sensor::readData()
-// {
-//     imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-//     imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-
-//     return std::array<float, 6> {gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]};
-// }
 
 const std::array<float, 6> BNO055Sensor::readData()
 {
@@ -127,14 +116,6 @@ void TripleBNO055::calibrate() {
     sensor3.calibrate();
 }
 
-void TripleBNO055::displayStatus() const{
-//to do
-}
-
-void TripleBNO055::displayCalStatus() const{
-//to do
-}
-
 const std::array<float, 6> TripleBNO055::read_data(){
     std::array<float, 6> data1 = sensor1.readData();
     std::array<float, 6> data2 = sensor2.readData();
@@ -159,6 +140,7 @@ void TripleBNO055::print_data(const std::array<float, 6>& bno_data) const {
   Serial.print(bno_data[5]);
   Serial.print(">");
 }
+
 // --------------------
 // BMP581Sensor Methods
 // --------------------
@@ -174,24 +156,15 @@ const bool BMP581Sensor::setup()
     return 1;
 }
 
-void BMP581Sensor::calibrate()
-{
-    // Implement calibration if necessary
-}
-// readData() Method
-const BMPData BMP581Sensor::readData() {
-    BMPData data{0,0};
+const std::array<float, 2> BMP581Sensor::readData() {
+    std::array<float, 2> data = {0,0};
     bmp5_sensor_data sensorData;
     delay(delay_time);
     if (bmp.getSensorData(&sensorData) == BMP5_OK) {
-        data.pressure = sensorData.pressure;
-        data.temperature = sensorData.temperature;
-        return data;
-    } else {
-        return BMPData{0, 0};
+        data = {sensorData.pressure, sensorData.temperature};
     }
+    return data;
 }
-
 
 const float BMP581Sensor::readPressure() const{
     bmp5_sensor_data sensorData;
@@ -203,7 +176,6 @@ const float BMP581Sensor::readPressure() const{
     }
 }
 
-// readTemperature() Method
 const float BMP581Sensor::readTemperature() const {
     bmp5_sensor_data sensorData;
     delay(delay_time);
@@ -214,7 +186,6 @@ const float BMP581Sensor::readTemperature() const {
     }
 }
 
-// enableFilteringAndOversampling() Method
 void BMP581Sensor::enableFilteringAndOversampling() {
     // Adjust the methods based on the library's API
     // bmp.setOversamplingPressure(BMP5_OVERSAMPLING_16X);
@@ -233,28 +204,14 @@ const bool TripleBMP581::setup() {
     return success1 && success2 && success3;
 }
 
-void TripleBMP581::calibrate() {
-    sensor1.calibrate();
-    sensor2.calibrate();
-    sensor3.calibrate();
-}
-
-void TripleBMP581::displayStatus() const{
-//to do
-}
-
-void TripleBMP581::displayCalStatus() const{
-//to do
-}
-
 const std::array<float, 2> TripleBMP581::read_data(){
-    BMPData data1 = sensor1.readData();
-    BMPData data2 = sensor2.readData();
-    BMPData data3 = sensor3.readData();
+    std::array<float, 2> data1 = sensor1.readData();
+    std::array<float, 2> data2 = sensor2.readData();
+    std::array<float, 2> data3 = sensor3.readData();
 
     return std::array<float, 2> {
-        combineData(data1.pressure, data2.pressure, data3.pressure), 
-        combineData(data1.temperature, data2.temperature, data3.temperature), 
+        combineData(data1[0], data2[0], data3[0]), 
+        combineData(data1[1], data2[1], data3[1]) 
     };
 }
 
