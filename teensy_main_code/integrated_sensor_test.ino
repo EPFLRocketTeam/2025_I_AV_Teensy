@@ -62,7 +62,6 @@ void setup() {
     if (!bno.setup()) {
         mySerial.println("Error initializing BNO sensors!");
     } else {
-        bno.displayStatus();
         bno.calibrate();
         mySerial.println("BNO sensors initialized and calibrated.");
     }
@@ -71,8 +70,6 @@ void setup() {
     if (!bmp.setup()) {
         mySerial.println("Error initializing BMP sensors!");
     } else {
-        bmp.displayStatus();
-        bmp.calibrate();
         mySerial.println("BMP sensors initialized and calibrated.");
     }
 }
