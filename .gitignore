@@ -1,6 +1,6 @@
 # teensy stuff
 *.ini
-/.pio/*
+.pio/*
 
 # Prerequisites
 *.d
