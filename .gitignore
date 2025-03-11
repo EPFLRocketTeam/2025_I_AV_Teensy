@@ -1,5 +1,6 @@
-# vscode
+# teensy stuff
 *.ini
+/.pio/*
 
 # Prerequisites
 *.d
