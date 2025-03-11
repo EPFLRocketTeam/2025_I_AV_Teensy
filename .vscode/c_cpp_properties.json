@@ -8,6 +8,7 @@
         {
             "name": "PlatformIO",
             "includePath": [
+                "/Users/daniel/2025_I_AV_Teensy/include",
                 "/Users/daniel/2025_I_AV_Teensy/src",
                 "/Users/daniel/.platformio/packages/framework-arduinoteensy/cores/teensy4",
                 "/Users/daniel/2025_I_AV_Teensy/lib/Adafruit_BNO055",
@@ -121,6 +122,7 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
+                    "/Users/daniel/2025_I_AV_Teensy/include",
                     "/Users/daniel/2025_I_AV_Teensy/src",
                     "/Users/daniel/.platformio/packages/framework-arduinoteensy/cores/teensy4",
                     "/Users/daniel/2025_I_AV_Teensy/lib/Adafruit_BNO055",
