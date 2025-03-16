@@ -1,92 +1,33 @@
-cmake_minimum_required(VERSION 3.29)
-project(2025_I_AV_Teensy)
+# cmake_minimum_required(VERSION 3.27)
+# project(controller_proto)
 
-set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_CXX_STANDARD 17)
 
-include_directories(.)
-include_directories(lib/Adafruit_BNO055)
-include_directories(lib/Adafruit_BNO055/examples)
-include_directories(lib/Adafruit_BNO055/examples/bunny)
-include_directories(lib/Adafruit_BNO055/examples/position)
-include_directories(lib/Adafruit_BNO055/examples/rawdata)
-include_directories(lib/Adafruit_BNO055/examples/read_all_data)
-include_directories(lib/Adafruit_BNO055/examples/restore_offsets)
-include_directories(lib/Adafruit_BNO055/examples/sensorapi)
-include_directories(lib/Adafruit_BNO055/examples/webserial_3d)
-include_directories(lib/Adafruit_BNO055/utility)
-include_directories(lib/Adafruit_BusIO)
-include_directories(lib/Adafruit_BusIO/examples)
-include_directories(lib/Adafruit_BusIO/examples/i2c_address_detect)
-include_directories(lib/Adafruit_BusIO/examples/i2c_readwrite)
-include_directories(lib/Adafruit_BusIO/examples/i2c_registers)
-include_directories(lib/Adafruit_BusIO/examples/i2corspi_register)
-include_directories(lib/Adafruit_BusIO/examples/spi_modetest)
-include_directories(lib/Adafruit_BusIO/examples/spi_readwrite)
-include_directories(lib/Adafruit_BusIO/examples/spi_register_bits)
-include_directories(lib/Adafruit_BusIO/examples/spi_registers)
-include_directories(lib/Adafruit_Unified_Sensor)
-include_directories(lib/Adafruit_Unified_Sensor/examples)
-include_directories(lib/Adafruit_Unified_Sensor/examples/sensortest)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example1_BasicReadingsI2C)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example2_BasicReadingsSPI)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example3_Interrupts)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example4_Filtering)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example5_Oversampling)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example6_FIFOBuffer)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example7_NVM)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example8_LowPower)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/examples/Example9_FastMeasurements)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/src)
-include_directories(lib/SparkFun_BMP581_Arduino_Library/src/bmp5_api)
 
-add_executable(2025_I_AV_Teensy
-        lib/Adafruit_BNO055/examples/bunny/bunny.ino
-        lib/Adafruit_BNO055/examples/position/position.ino
-        lib/Adafruit_BNO055/examples/rawdata/rawdata.ino
-        lib/Adafruit_BNO055/examples/read_all_data/read_all_data.ino
-        lib/Adafruit_BNO055/examples/restore_offsets/restore_offsets.ino
-        lib/Adafruit_BNO055/examples/sensorapi/sensorapi.ino
-        lib/Adafruit_BNO055/examples/webserial_3d/webserial_3d.ino
-        lib/Adafruit_BNO055/utility/imumaths.h
-        lib/Adafruit_BNO055/utility/matrix.h
-        lib/Adafruit_BNO055/utility/quaternion.h
-        lib/Adafruit_BNO055/utility/vector.h
-        lib/Adafruit_BNO055/Adafruit_BNO055.cpp
-        lib/Adafruit_BNO055/Adafruit_BNO055.h
-        lib/Adafruit_BusIO/examples/i2c_address_detect/i2c_address_detect.ino
-        lib/Adafruit_BusIO/examples/i2c_readwrite/i2c_readwrite.ino
-        lib/Adafruit_BusIO/examples/i2c_registers/i2c_registers.ino
-        lib/Adafruit_BusIO/examples/i2corspi_register/i2corspi_register.ino
-        lib/Adafruit_BusIO/examples/spi_modetest/spi_modetest.ino
-        lib/Adafruit_BusIO/examples/spi_readwrite/spi_readwrite.ino
-        lib/Adafruit_BusIO/examples/spi_register_bits/spi_register_bits.ino
-        lib/Adafruit_BusIO/examples/spi_registers/spi_registers.ino
-        lib/Adafruit_BusIO/Adafruit_BusIO_Register.cpp
-        lib/Adafruit_BusIO/Adafruit_BusIO_Register.h
-        lib/Adafruit_BusIO/Adafruit_I2CDevice.cpp
-        lib/Adafruit_BusIO/Adafruit_I2CDevice.h
-        lib/Adafruit_BusIO/Adafruit_I2CRegister.h
-        lib/Adafruit_BusIO/Adafruit_SPIDevice.cpp
-        lib/Adafruit_BusIO/Adafruit_SPIDevice.h
-        lib/Adafruit_Unified_Sensor/examples/sensortest/sensortest.ino
-        lib/Adafruit_Unified_Sensor/Adafruit_Sensor.cpp
-        lib/Adafruit_Unified_Sensor/Adafruit_Sensor.h
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example1_BasicReadingsI2C/Example1_BasicReadingsI2C.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example2_BasicReadingsSPI/Example2_BasicReadingsSPI.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example3_Interrupts/Example3_Interrupts.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example4_Filtering/Example4_Filtering.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example5_Oversampling/Example5_Oversampling.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example6_FIFOBuffer/Example6_FIFOBuffer.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example7_NVM/Example7_NVM.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example8_LowPower/Example8_LowPower.ino
-        lib/SparkFun_BMP581_Arduino_Library/examples/Example9_FastMeasurements/Example9_FastMeasurements.ino
-        lib/SparkFun_BMP581_Arduino_Library/src/bmp5_api/bmp5.c
-        lib/SparkFun_BMP581_Arduino_Library/src/bmp5_api/bmp5.h
-        lib/SparkFun_BMP581_Arduino_Library/src/bmp5_api/bmp5_defs.h
-        lib/SparkFun_BMP581_Arduino_Library/src/SparkFun_BMP581_Arduino_Library.cpp
-        lib/SparkFun_BMP581_Arduino_Library/src/SparkFun_BMP581_Arduino_Library.h
-        Sensors.cpp
-        Sensors.h
-        test_sensors.ino
-        Client.cpp)
+# Necessary to use matplotlibcpp
+# find_package(Python3 COMPONENTS Development NumPy)
+
+set(HEADERS
+    inc/Controller.h
+    inc/PID.h
+    inc/DroneController.h
+    inc/Vec3.h
+
+    # test/inc/csv.h
+    # test/inc/matplotlibcpp.h
+    # test/inc/catch.hpp
+)
+set(SOURCES
+    src/PID.cpp
+    src/Controller.cpp
+
+    # test/ControllerTest.cpp
+    # test/ControllerTest.cpp
+)
+
+# add_executable(controller_proto ${SOURCES} ${HEADERS})
+# target_link_libraries(controller_proto PRIVATE Python3::Python Python3::NumPy)
+
+# Make control available as a library
+add_library(control ${SOURCES} ${HEADERS})
+target_include_directories(control PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)

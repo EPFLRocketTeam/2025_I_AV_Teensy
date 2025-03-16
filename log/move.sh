@@ -1,0 +1,1 @@
+mv /media/alberts/63FC-DAA7/*.csv drone_control/log/current_format
