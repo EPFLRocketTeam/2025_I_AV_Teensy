@@ -12,6 +12,8 @@
 
 #include <SD.h>
 
+constexpr bool DEBUG = true;
+
 #define MAX_WIDTH 2000. // max throttle,
 #define MIN_WIDTH 1000. // min throttle,
 
@@ -71,13 +73,14 @@ bool armed = false;
 
 void setup()
 {
+    Serial.begin(9600);
+    setup_uart();
+    if (DEBUG) return;
     setup_outputs();
     my_controller.reset();
-    Serial.begin(9600);
     setup_sensors();
     timer = millis();
     setup_sd();
-    setup_uart();
 }
 
 const ControlOutput ERROR_OUT = {-1., -1., -1.};
@@ -86,6 +89,13 @@ const Vec3 ERROR_VEC = {-1., -1., -1.};
 void loop()
 {
     update_uart();
+    if (DEBUG) 
+    {
+        ControlInput control_input = {{ERROR_VEC, ERROR_VEC, 0, 0}, {ERROR_VEC, 0, 0, false}};
+        SendControlInput(control_input);
+        delay(100);
+        return;
+    }
 
     long loop_start = millis();
     AttRemoteInput remote_input = get_remote_att();

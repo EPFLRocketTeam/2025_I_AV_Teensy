@@ -1,7 +1,7 @@
 #include "inc/Vec3.h"
 #include "inc/DroneController.h"
 
-TeensyUART uart_manager(Serial7, 9600);
+TeensyUART uart_manager(Serial7, 115200);
 
 void ReceiveControlOutput(Payload &payload)
 {
@@ -18,6 +18,15 @@ void ReceiveControlOutput(Payload &payload)
         Serial.println("Error: Failed to read complete ControlOutput from payload!");
         return;
     }
+
+    Serial.print("Received control output: d1=");
+    Serial.print(output.d1);
+    Serial.print(", d2=");
+    Serial.print(output.d2);
+    Serial.print(", thrust=");
+    Serial.print(output.thrust);
+    Serial.print(", mz=");
+    Serial.println(output.mz);
 
     received_control_output = output;
     control_output_received = true;
@@ -53,6 +62,17 @@ bool SendControlInput(const ControlInput &input)
         Serial.println("Error: Failed to send control input");
         return false;
     }
+
+    Serial.print("Sent control input: att_count=");
+    Serial.print(input.state.attitude_count);
+    Serial.print(", rate_count=");
+    Serial.print(input.state.rate_count);
+    Serial.print(", inline_thrust=");
+    Serial.print(input.remote_input.inline_thrust);
+    Serial.print(", yaw_rate_ref=");
+    Serial.print(input.remote_input.yaw_rate_ref);
+    Serial.print(", arm=");
+    Serial.println(input.remote_input.arm);
 
     return true;
 }
