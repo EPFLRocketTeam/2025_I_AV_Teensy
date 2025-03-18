@@ -1,3 +1,13 @@
+// Nescessary includes for UART
+#include "com_client/inc/PacketID.h"
+#include "com_client/inc/Payload.h"
+#include "com_client/inc/UART.h"
+#include "com_client/inc/TeensyUART.h"
+
+#include "com_client/src/Payload.cpp"
+#include "com_client/src/UART.cpp"
+#include "com_client/src/TeensyUART.cpp"
+
 #include "inc/DroneController.h"
 
 #include <SD.h>
@@ -6,7 +16,7 @@
 #define MIN_WIDTH 1000. // min throttle,
 
 #define MAX_TILT 15.   // the maximum angle the drone can be asked to tilt
-#define LOOP_PERIOD 10 // ends up being closer to 14 in reality 
+#define LOOP_PERIOD 10 // ends up being closer to 14 in reality
 
 #define SD_FLUSH_PERIOD 1000 // ms
 uint32_t lastSDWrite = 0;
@@ -14,7 +24,7 @@ uint32_t lastSDWrite = 0;
 struct DroneState
 {
     Vec3 attitude = {0, 0, 0}; // in °
-    Vec3 rate = {0, 0, 0}; // in °/s
+    Vec3 rate = {0, 0, 0};     // in °/s
     int attitude_count = 0;
     int rate_count = 0;
 };
@@ -34,17 +44,25 @@ struct RateRemoteInput
     bool arm = false;
 };
 
-struct RawOutput {
-    double d1; // in degrees
-    double d2; // in degrees
-    double avg_throttle; // from 0 to 1
+struct RawOutput
+{
+    double d1;            // in degrees
+    double d2;            // in degrees
+    double avg_throttle;  // from 0 to 1
     double throttle_diff; // from -1 to 1, top_throttle - bot_throttle
+};
+
+struct ControlInput
+{
+    DroneState state;
+    AttRemoteInput remote_input;
 };
 
 // Specify the links and initial tuning parameters
 Controller my_controller = DRONE_CONTROLLER;
 
-ControlOutput cont;
+ControlOutput received_control_output;
+bool control_output_received = false;
 
 uint32_t timer = millis();
 
@@ -59,6 +77,7 @@ void setup()
     setup_sensors();
     timer = millis();
     setup_sd();
+    setup_uart();
 }
 
 const ControlOutput ERROR_OUT = {-1., -1., -1.};
@@ -66,9 +85,11 @@ const Vec3 ERROR_VEC = {-1., -1., -1.};
 
 void loop()
 {
+    update_uart();
+
     long loop_start = millis();
     AttRemoteInput remote_input = get_remote_att();
-    //RateRemoteInput remote_input = get_remote_rate();
+    // RateRemoteInput remote_input = get_remote_rate();
 
     // armed state transitions
     if (!armed && remote_input.arm)
@@ -96,16 +117,15 @@ void loop()
     {
         DroneState state = read_sensors();
 
-        // compute control
-        cont = my_controller.attControlD(remote_input.inline_thrust, remote_input.att_ref, remote_input.yaw_rate_ref,
-                                         state.attitude, state.rate);
+        ControlInput control_input = {state, remote_input};
+        SendControlInput(control_input);
 
-        //cont = my_controller.rateControlD(remote_input.inline_thrust, remote_input.rate_ref, state.rate, state.attitude);
-        RawOutput raw_out = to_raw(cont);  
-        
-        write_raw_outputs(raw_out);
-
-        print_state(loop_start - timer, raw_out, state, remote_input.inline_thrust);
+        if (control_output_received)
+        {
+            RawOutput raw_out = to_raw(received_control_output);
+            write_raw_outputs(raw_out);
+            print_state(loop_start - timer, raw_out, state, remote_input.inline_thrust);
+        }
 
         if (loop_start - lastSDWrite > SD_FLUSH_PERIOD)
         {
