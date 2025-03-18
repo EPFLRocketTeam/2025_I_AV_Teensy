@@ -1,8 +1,7 @@
 #include "inc/Vec3.h"
 #include "inc/DroneController.h"
 
-// TODO: Find correct serial port
-TeensyUART uart_manager(Serial1, 9600);
+TeensyUART uart_manager(Serial7, 9600);
 
 void ReceiveControlOutput(Payload &payload)
 {
