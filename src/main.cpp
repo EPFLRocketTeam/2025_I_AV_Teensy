@@ -6,6 +6,8 @@
 #include <utils.h>
 #include <iostream>
 
+#include "god.h"
+
 void setup(void)
 {
   Serial.begin(115200); // 110, 300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
