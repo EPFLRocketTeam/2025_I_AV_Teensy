@@ -8,7 +8,6 @@
 
 #include "../servos/ServoController.h"
 #include "god.h"
-#include "../lib/com_client/inc/TeensyUART.h"
 
 ServoController servoController;
 GOD* god;
