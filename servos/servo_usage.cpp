@@ -8,7 +8,7 @@ void setup() {
 
 
 void loop() {
-    std::vector<double> output = god->control_memory;
+    std::vector<double> output = god->control_output_memory;
     servoController.updateServos(output);
 }
 
