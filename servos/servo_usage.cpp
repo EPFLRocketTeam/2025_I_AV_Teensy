@@ -1,19 +1,14 @@
 #include "ServoController.h"
-// TODO: Add ControlOutput and GOD
-
 
 ServoController servoController;
-God* god;
+GOD* god;
 
 void setup() {
 }
 
 
 void loop() {
-    ControlOutput output = god->control_output_memory->Read();
+    std::vector<double> output = god->control_output_memory;
     servoController.updateServos(output);
 }
-
-
-
 

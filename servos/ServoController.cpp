@@ -1,7 +1,6 @@
 #include "ServoController.h"
 
-ServoController::ServoController()
-        : currentAngle1(0), currentAngle2(0) {
+ServoController::ServoController() {
     // Initialize the servos
     const int servopin[2] = {14, 15};
     servo_inner.attach(servopin[1]);
@@ -12,12 +11,8 @@ ServoController::ServoController()
     servo_outer.write(ZERO_ANGLE_OUTER);
 }
 
-void ServoController::updateServos(ControlOutput output) {
-    if (currentAngle1 != output.d1 || currentAngle2 != output.d2) {
-        writeServo(output.d1, output.d2);
-        currentAngle1 = output.d1;
-        currentAngle2 = output.d2;
-    }
+void ServoController::updateServos(std::vector<double> output) {
+    writeServo(output[0], output[1]);
 }
 
 double ServoController::angle_to_width(double angle, double center) {
