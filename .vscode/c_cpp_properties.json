@@ -8,7 +8,6 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/Users/daniel/2025_I_AV_Teensy/include",
                 "/Users/daniel/2025_I_AV_Teensy/src",
                 "/Users/daniel/2025_I_AV_Teensy/lib/utils",
                 "/Users/daniel/2025_I_AV_Teensy/lib/SparkFun_BMP581_Arduino_Library/src",
@@ -19,9 +18,9 @@
                 "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/SPI",
                 "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/Wire",
                 "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/Wire/utility",
+                "/Users/daniel/2025_I_AV_Teensy/lib/com_client/src",
                 "/Users/daniel/.platformio/packages/framework-arduinoteensy/cores/teensy4",
                 "/Users/daniel/2025_I_AV_Teensy/lib/Client",
-                "/Users/daniel/2025_I_AV_Teensy/lib/com_client/src",
                 "/Users/daniel/2025_I_AV_Teensy/lib/sensors",
                 "/Users/daniel/2025_I_AV_Teensy/.pio/libdeps/teensy41/Unity/src",
                 "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/ADC",
@@ -125,7 +124,6 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/Users/daniel/2025_I_AV_Teensy/include",
                     "/Users/daniel/2025_I_AV_Teensy/src",
                     "/Users/daniel/2025_I_AV_Teensy/lib/utils",
                     "/Users/daniel/2025_I_AV_Teensy/lib/SparkFun_BMP581_Arduino_Library/src",
@@ -136,9 +134,9 @@
                     "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/SPI",
                     "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/Wire",
                     "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/Wire/utility",
+                    "/Users/daniel/2025_I_AV_Teensy/lib/com_client/src",
                     "/Users/daniel/.platformio/packages/framework-arduinoteensy/cores/teensy4",
                     "/Users/daniel/2025_I_AV_Teensy/lib/Client",
-                    "/Users/daniel/2025_I_AV_Teensy/lib/com_client/src",
                     "/Users/daniel/2025_I_AV_Teensy/lib/sensors",
                     "/Users/daniel/2025_I_AV_Teensy/.pio/libdeps/teensy41/Unity/src",
                     "/Users/daniel/.platformio/packages/framework-arduinoteensy/libraries/ADC",
