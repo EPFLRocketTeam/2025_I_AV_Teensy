@@ -2,7 +2,6 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
-
 #include <Wire.h>
 
 std::vector<Vec3> att_calibration = {{327.9375000000,1.2500000000,85.4375000000}, {328.5625000000,2.3750000000,85.3125000000}, {329.3125000000,-1.7500000000,85.0000000000}};

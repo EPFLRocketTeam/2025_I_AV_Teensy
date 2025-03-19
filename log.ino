@@ -45,7 +45,7 @@ void print_line(const std::list<double> &elements)
 void print_state(double time, RawOutput out, DroneState state, double inline_thrust)
 {
     std::list<double> toPrint = {time, out.d1, out.d2, out.avg_throttle, out.throttle_diff, (double) state.attitude_count, (double) state.rate_count};
-    toPrint.splice(toPrint.end(), my_controller.getState());
+    // toPrint.splice(toPrint.end(), my_controller.getState());
     toPrint.push_back(inline_thrust);
     print_line(toPrint);
 }

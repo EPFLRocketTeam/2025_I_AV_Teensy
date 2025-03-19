@@ -8,9 +8,9 @@
 #include "com_client/src/UART.cpp"
 #include "com_client/src/TeensyUART.cpp"
 
-#include "inc/DroneController.h"
-
+#include "inc/Vec3.h"
 #include <SD.h>
+#include <list>
 
 constexpr bool DEBUG = true;
 
@@ -19,6 +19,7 @@ constexpr bool DEBUG = true;
 
 #define MAX_TILT 15.   // the maximum angle the drone can be asked to tilt
 #define LOOP_PERIOD 10 // ends up being closer to 14 in reality
+#define MAX_THRUST 19  // max thrust
 
 #define SD_FLUSH_PERIOD 1000 // ms
 uint32_t lastSDWrite = 0;
@@ -60,8 +61,16 @@ struct ControlInput
     AttRemoteInput remote_input;
 };
 
-// Specify the links and initial tuning parameters
-Controller my_controller = DRONE_CONTROLLER;
+struct ControlOutput{
+    double d1 = 0;
+    double d2 = 0;
+    double thrust = 0;
+    double mz = 0;
+
+    ControlOutput toDegrees(){
+        return {d1*180/M_PI, d2*180/M_PI, thrust, mz};
+    }
+};
 
 ControlOutput received_control_output;
 bool control_output_received = false;
@@ -77,7 +86,7 @@ void setup()
     setup_uart();
     if (DEBUG) return;
     setup_outputs();
-    my_controller.reset();
+    // my_controller.reset();
     setup_sensors();
     timer = millis();
     setup_sd();
@@ -106,7 +115,7 @@ void loop()
     {
         create_flight_file();
         timer = loop_start;
-        my_controller.reset();
+        // my_controller.reset();
         Serial.print("Armed\n");
         armed = true;
     }

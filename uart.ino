@@ -1,6 +1,3 @@
-#include "inc/Vec3.h"
-#include "inc/DroneController.h"
-
 TeensyUART uart_manager(Serial7, 115200);
 
 void ReceiveControlOutput(Payload &payload)
