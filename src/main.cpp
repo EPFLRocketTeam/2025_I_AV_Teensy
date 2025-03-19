@@ -6,19 +6,28 @@
 #include <utils.h>
 #include <iostream>
 
+#include "../servos/ServoController.h"
 #include "god.h"
+
+ServoController servoController;
+GOD* god;
 
 void setup(void)
 {
-  Serial.begin(115200); // 110, 300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
+    Serial.begin(115200); // 110, 300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
 }
 
 void loop(void)
 { 
-  Serial.println("test");
-  // blink led
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
+    Serial.println("test");
+    // blink led
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(1000);
+
+    // Control servos
+    // read data from god
+    std::vector<double> output = god->control_output_memory;
+    servoController.updateServos(output);
 }

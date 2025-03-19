@@ -2,7 +2,7 @@
 #define SERVO_CONTROLLER_H
 
 #include <Servo.h>
-#include "../god/GOD.h"
+#include "../src/GOD.h"
 
 #define MAX_WIDTH 2000. // max throttle,
 #define MIN_WIDTH 1000. // min throttle,
