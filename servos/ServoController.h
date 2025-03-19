@@ -2,7 +2,7 @@
 #define SERVO_CONTROLLER_H
 
 #include <Servo.h>
-// TODO: Add ControlOutput
+#include "../god/GOD.h"
 
 #define MAX_WIDTH 2000. // max throttle,
 #define MIN_WIDTH 1000. // min throttle,
@@ -29,7 +29,7 @@
 class ServoController {
 public:
     ServoController();
-    void updateServos(ControlOutput output);
+    void updateServos(std::vector<double> output);
 
 private:
     int servo1Pin;
