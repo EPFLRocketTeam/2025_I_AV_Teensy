@@ -12,7 +12,7 @@
 #include <SD.h>
 #include <list>
 
-constexpr bool DEBUG = true;
+constexpr bool DEBUG = false;
 
 #define MAX_WIDTH 2000. // max throttle,
 #define MIN_WIDTH 1000. // min throttle,
@@ -83,6 +83,9 @@ bool armed = false;
 void setup()
 {
     Serial.begin(9600);
+
+    Serial.println("Hello world!");
+
     setup_uart();
     if (DEBUG) return;
     setup_outputs();
@@ -102,7 +105,7 @@ void loop()
     {
         ControlInput control_input = {{ERROR_VEC, ERROR_VEC, 0, 0}, {ERROR_VEC, 0, 0, false}};
         SendControlInput(control_input);
-        delay(100);
+        delay(10);
         return;
     }
 

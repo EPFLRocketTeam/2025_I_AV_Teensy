@@ -26,6 +26,8 @@ void setup_outputs()
     bot_motor.writeMicroseconds(1000);
     servo_inner.writeMicroseconds(inner_center);
     servo_outer.writeMicroseconds(outer_center);
+
+    Serial.println("Finished output setup");
 }
 
 void unarmed_output()

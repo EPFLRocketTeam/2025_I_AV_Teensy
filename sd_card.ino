@@ -29,6 +29,8 @@ void setup_sd()
     File session_file = SD.open(SESSION_LOG, FILE_WRITE);
     session_file.print(session_number);
     session_file.close();
+
+    Serial.println("Finished SD card setup");
 }
 
 void close_flight_file()

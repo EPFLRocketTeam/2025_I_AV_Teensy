@@ -93,8 +93,9 @@ bool WriteVec3(Payload &payload, Vec3 vec)
 void setup_uart()
 {
     uart_manager.Begin();
-    // uart_manager.RegisterHandler((int)PacketId::ControlInput, ReceiveControlInput);
     uart_manager.RegisterHandler((int)PacketId::ControlOutput, ReceiveControlOutput);
+
+    Serial.println("Finished UART setup");
 }
 
 void update_uart()

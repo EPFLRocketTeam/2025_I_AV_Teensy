@@ -38,6 +38,8 @@ void setup_sensors()
         bno.setAxisRemap(Adafruit_BNO055::REMAP_CONFIG_P6);
         bno.setAxisSign(Adafruit_BNO055::REMAP_SIGN_P6);
     }
+
+    Serial.println("Finsihed sensors setups");
 }
 
 DroneState last_state;
