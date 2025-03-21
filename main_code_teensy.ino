@@ -72,6 +72,7 @@ struct FlightNumber {
 
 struct ControlInput
 {
+    bool armed;
     State desired_state;
     State current_state;
     SetpointSelection setpointSelection;
@@ -116,6 +117,7 @@ void setup()
 
 const ControlOutput ERROR_OUT = {-1., -1., -1.};
 const Vec3 ERROR_VEC = {-1., -1., -1.};
+const State ERROR_STATE = {ERROR_VEC, ERROR_VEC, ERROR_VEC, ERROR_VEC};
 
 void loop()
 {
@@ -143,13 +145,16 @@ void loop()
     if (!armed)
     {
         unarmed_output();
+
+        ControlInput control_input = {false, ERROR_STATE, ERROR_STATE, ATTITUDE_CONTROL_SELECTION, 0.0};
+        SendControlInput(control_input);
     }
     // armed behavior
     else
     {
         SensorData sensor_data = read_sensors();
 
-        ControlInput control_input = {remote_input.desired, sensor_data.state, remote_input.setpointSelection, remote_input.inline_thrust.value_or(0)};
+        ControlInput control_input = {true, remote_input.desired, sensor_data.state, remote_input.setpointSelection, remote_input.inline_thrust.value_or(0)};
         SendControlInput(control_input);
 
         if (control_output_received)
