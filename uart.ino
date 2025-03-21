@@ -54,7 +54,9 @@ bool SendControlInput(const ControlInput &input)
         return false;
     }
 
-    Serial.print("Received control input: thrust=");
+    Serial.print("Sent control input: armed=");
+    Serial.print(input.armed);
+    Serial.print(", thrust=");
     Serial.print(input.inline_thrust);
     Serial.println(", rest_of_the_payload=TODO");
     
