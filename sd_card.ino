@@ -4,7 +4,7 @@ String log_name = "ERROR.csv";
 int session_number = 0;
 int flight_number = 0;
 
-void setup_sd()
+FlightNumber setup_sd()
 {
     Serial.print("Initializing SD card...");
     // see if the card is present and can be initialized:
@@ -30,7 +30,7 @@ void setup_sd()
     session_file.print(session_number);
     session_file.close();
 
-    Serial.println("Finished SD card setup");
+    return {session_number, flight_number};
 }
 
 void close_flight_file()

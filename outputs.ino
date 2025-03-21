@@ -6,7 +6,7 @@
 #define MIN_W 1000
 #define W_RANGE 1000
 
-#define outer_center 1465
+#define outer_center 1453
 #define inner_center 1411
 
 #define MAX_CONVERSION_THRUST 20
@@ -26,8 +26,6 @@ void setup_outputs()
     bot_motor.writeMicroseconds(1000);
     servo_inner.writeMicroseconds(inner_center);
     servo_outer.writeMicroseconds(outer_center);
-
-    Serial.println("Finished output setup");
 }
 
 void unarmed_output()
@@ -65,7 +63,7 @@ RawOutput to_raw(ControlOutput cont){
     double throttle = output_from_thrust(cont.thrust);
     double throttle_diff = -0.2114217 * cont.mz + 0.04766524;
 
-    return {cont.d1, cont.d2, throttle, throttle_diff};
+    return {cont.d1 + inner_offset, cont.d2 + outer_offset, throttle, throttle_diff};
 }
 
 double angle_to_width(double angle, double center){

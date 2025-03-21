@@ -5,6 +5,7 @@
 #ifndef CONTROLLER_PROTO_VEC3_H
 #define CONTROLLER_PROTO_VEC3_H
 
+
 #include <cmath>
 #include <stdexcept>
 
@@ -78,6 +79,10 @@ struct Vec3 {
 
     static Vec3 Zero(){
         return {0, 0, 0};
+    }
+
+    static Vec3 One(){
+        return {1, 1, 1};
     }
 
     double& operator[](int i){

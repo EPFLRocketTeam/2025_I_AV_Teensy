@@ -6,9 +6,9 @@ void double_print(String s)
 
 void print_cols()
 {
-    double_print("time,d1,d2,throttle_avg,throttle_diff,att_count,rate_count,");
+    double_print("time,d1,d2,throttle_avg,throttle_diff,att_count,rate_count,pressure_count,");
 
-    for (String layer : {"rate", "attitude", "position", "velocity"})
+    for (String layer : {"rate", "attitude", "velocity", "position"})
     {
         for (String state : {"sp", "val", "output", "error", "pcont", "icont", "dcont"})
         {
@@ -42,10 +42,15 @@ void print_line(const std::list<double> &elements)
 }
 
 
-void print_state(double time, RawOutput out, DroneState state, double inline_thrust)
+void print_state(double time, RawOutput out, const SensorData& sensor_data)
 {
-    std::list<double> toPrint = {time, out.d1, out.d2, out.avg_throttle, out.throttle_diff, (double) state.attitude_count, (double) state.rate_count};
-    // toPrint.splice(toPrint.end(), my_controller.getState());
-    toPrint.push_back(inline_thrust);
+    std::list<double> toPrint = {time, out.d1, out.d2, out.avg_throttle, out.throttle_diff, (double) sensor_data.attitude_count, (double) sensor_data.rate_count, (double) sensor_data.pressure_count};
+    // toPrint.splice(toPrint.end(), my_controller->getState());
     print_line(toPrint);
 }
+
+void print_vec(Vec3 v)
+{
+    print_line({v.x, v.y, v.z});
+}
+
