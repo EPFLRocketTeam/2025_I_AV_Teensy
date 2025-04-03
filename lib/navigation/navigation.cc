@@ -1,4 +1,4 @@
-#include "../inc/navigation.hpp"
+#include "navigation.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -106,23 +106,6 @@ std::vector<double> Navigation::avg_gyro(const std::vector<double>& gyro)
         sumY += gyro[i + 1]; // Sum of all y values.
         sumZ += gyro[i + 2]; // Sum of all z values.
     }
-
-    /*for (size_t i = 0; i < gyro.size(); i++)
-    {
-        if (i % 3 == 0)
-        {
-            sumX += gyro[i];
-        }
-        else if (i % 3 == 1)
-        {
-            sumY += gyro[i];
-        }
-        else
-        {
-            sumZ += gyro[i];
-        }
-        
-    }*/
 
     return {sumX / 3.0, sumY / 3.0, sumZ / 3.0};
 }
