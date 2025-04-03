@@ -5,12 +5,11 @@
 #include <SparkFun_BMP581_Arduino_Library.h>
 #include <utils.h>
 #include <iostream>
-#include <vector>
 
-
+#include "../servos/ServoController.h"
 #include "god.h"
-#include "navigation.h"
 
+ServoController servoController;
 GOD* god;
 
 void setup(void)
@@ -27,5 +26,8 @@ void loop(void)
     digitalWrite(LED_BUILTIN, LOW);
     delay(1000);
 
-
+    // Control servos
+    // read data from god
+    std::vector<double> output = god->control_output_memory;
+    servoController.updateServos(output);
 }

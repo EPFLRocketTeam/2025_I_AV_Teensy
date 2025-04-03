@@ -1,4 +1,4 @@
-#include "../inc/navigation.hpp"
+#include "navigation.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
