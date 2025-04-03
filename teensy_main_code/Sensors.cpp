@@ -81,7 +81,7 @@ const bool BNO055Sensor::updateCalStatus(){
 void BNO055Sensor::calibrate()
 {
     //if necessary, according adafruit guide, as soon as you turn it on, it already starts callibrating
-    Serial.println("Calibrating BNO055 sensor...:);
+    Serial.println("Calibrating BNO055 sensor...:");
     while (system_cal_status < calibration_threshold){ // 0 is no calibration, 3 is max, might take some time to calibrate, use 2 i guess, might not be necesssary if no fusion
         updateCalStatus();
     }

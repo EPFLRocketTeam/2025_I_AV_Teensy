@@ -18,6 +18,15 @@ using namespace std;
 
 Navigation::Navigation(double time, double baro1, double baro2, double baro3, double temperature, double gpsLatitude, double gpsLongitude, double gpsAltitude, double gyroX1, double gyroY1, double gyroZ1, double gyroX2, double gyroY2, double gyroZ2, double gyroX3, double gyroY3, double gyroZ3)
 {
+    init(time, baro1, baro2, baro3, temperature, gpsLatitude, gpsLongitude, gpsAltitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3);
+}
+
+Navigation::Navigation(std::vector<double> data) {
+    if (data.size() != 17) std::cerr << "Invalid data size. Expected 17 values." << std::endl; return;
+    init(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16]);
+}
+
+void Navigation::init(double time, double baro1, double baro2, double baro3, double temperature, double gpsLatitude, double gpsLongitude, double gpsAltitude, double gyroX1, double gyroY1, double gyroZ1, double gyroX2, double gyroY2, double gyroZ2, double gyroX3, double gyroY3, double gyroZ3) {
     prev_time = time;
     prev_gps_time = time;
     prev_baro = avg_baro({baro1, baro2, baro3});
