@@ -8,12 +8,11 @@
 
 using namespace std;
 
-#define GPS_REFREASH_PERIOD 1  // seconds
-
-#define L 0.0065  // Gradient thermique (K/m)
-#define R 8.3143   // Constante des gaz parfaits (J/(mol·K))
-#define g 9.80665  // Gravité terrestre (m/s²)
-#define M 0.0289644  // Masse molaire de l'air (kg/mol)
+// double Navigation::GPS_REFREASH_PERIOD = 1;  // seconds
+// double Navigation::L = 0.0065;  // Gradient thermique (K/m)
+// double Navigation::R = 8.3143;   // Constante des gaz parfaits (J/(mol·K))
+// double Navigation::g = 9.80665;  // Gravité terrestre (m/s²)
+// double Navigation::M = 0.0289644;  // Masse molaire de l'air (kg/mol)
 
 
 Navigation::Navigation(double time, double baro1, double baro2, double baro3, double temperature, double gpsLatitude, double gpsLongitude, double gpsAltitude, double gyroX1, double gyroY1, double gyroZ1, double gyroX2, double gyroY2, double gyroZ2, double gyroX3, double gyroY3, double gyroZ3)
@@ -31,6 +30,7 @@ void Navigation::init(double time, double baro1, double baro2, double baro3, dou
     prev_gps_time = time;
     prev_baro = avg_baro({baro1, baro2, baro3});
     initial_position = gps_baro_to_meters({gpsLatitude, gpsLongitude, gpsAltitude}, {baro1, baro2, baro3}, temperature);
+    
     position = {0.0, 0.0, 0.0};
     velocity = {0.0, 0.0, 0.0};
     acceleration = {0.0, 0.0, 0.0};
@@ -52,11 +52,11 @@ void Navigation::update(double time, double baro1, double baro2, double baro3, d
     double dt = (time - prev_time) / 1000.0;
     prev_time = time;
 
-    vector<double> new_position(3);
-    vector<double> new_velocity(3);
-    vector<double> new_acceleration(3);
+    vector<double> new_position(3, 0.0);
+    vector<double> new_velocity(3, 0.0);
+    vector<double> new_acceleration(3, 0.0);
 
-    if((time - prev_gps_time)/1000 >= GPS_REFREASH_PERIOD)
+    if (false)// ((time - prev_gps_time)/1000 >= GPS_REFREASH_PERIOD)
     {
         new_position = gps_baro_to_meters(gps, baro, temperature);
         new_position[0] = new_position[0] - initial_position[0];
@@ -74,9 +74,10 @@ void Navigation::update(double time, double baro1, double baro2, double baro3, d
         prev_gps_time = time;
     }
     else
-    {       
+    {  
         new_position[0] = position[0];
         new_position[1] = position[1];
+        // cout << avg_baro(baro) << " " << pressure_to_altitude(avg_baro(baro), temperature) << endl;
         new_position[2] = pressure_to_altitude(avg_baro(baro), temperature) - initial_position[2];
 
         new_velocity[0] = velocity[0];
@@ -91,6 +92,7 @@ void Navigation::update(double time, double baro1, double baro2, double baro3, d
     position = new_position;
     velocity = new_velocity;
     acceleration = new_acceleration;
+
 
     angular_velocity = avg_gyro({gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3});
     orientation[0] += angular_velocity[0]*dt;
@@ -131,7 +133,8 @@ std::vector<double> Navigation::gps_baro_to_meters(const std::vector<double>& gp
 
 double Navigation::pressure_to_altitude(const double& pressure, const double& temperature)
 {
-    prev_baro = (pressure*0.01 + prev_baro*0.99);  // Low-pass filter
+    prev_baro = pressure;
+    //prev_baro = (pressure*0.1 + prev_baro*0.9);  // Low-pass filter
     return (temperature / L) * (1 - pow(prev_baro / sea_level_pressure, (R * L) / (g * M)));
 }
 
@@ -139,13 +142,14 @@ double Navigation::pressure_to_altitude(const double& pressure, const double& te
 double Navigation::avg_baro(const std::vector<double>& baro)
 {
     double sum = 0;
-    int count = 0;
-    for (int i = 0; i < baro.size(); i++)
+    double count = 0;
+
+    for (size_t i = 0; i < baro.size(); i++)
     {
-        if (baro[i] > 0)
+        if (baro[i] > 1000.0)
         {
             sum += baro[i];
-            count++;
+            ++count;
         }
     }
     if (count == 0)

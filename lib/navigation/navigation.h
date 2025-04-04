@@ -19,10 +19,13 @@ struct RawData {
 class Navigation
 {
 public:
-    Navigation() = default;
+    Navigation() { init(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); };
     Navigation(std::vector<double> data);
     Navigation(double time, double baro1, double baro2, double baro3, double temperature, double gpsLatitude, double gpsLongitude, double gpsAltitude, double gyroX1, double gyroY1, double gyroZ1, double gyroX2, double gyroY2, double gyroZ2, double gyroX3, double gyroY3, double gyroZ3);
     void init(double time, double baro1, double baro2, double baro3, double temperature, double gpsLatitude, double gpsLongitude, double gpsAltitude, double gyroX1, double gyroY1, double gyroZ1, double gyroX2, double gyroY2, double gyroZ2, double gyroX3, double gyroY3, double gyroZ3);
+    void init(std::vector<double> data) {
+        init(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16]);
+    }
     ~Navigation();
 
     void update(double time, double baro1, double baro2, double baro3, double temperature, double gps_latitude, double gps_longitude, double gps_altitude, double gyroX1, double gyroY1, double gyroZ1, double gyroX2, double gyroY2, double gyroZ2, double gyroX3, double gyroY3, double gyroZ3);
@@ -53,6 +56,14 @@ private:
     std::vector<double> acceleration;
     std::vector<double> orientation;
     std::vector<double> angular_velocity;
+
+    // static double L, R, g, M, GPS_REFREASH_PERIOD;
+
+    static constexpr double GPS_REFREASH_PERIOD = 1.0;  // seconds
+    static constexpr double L = 0.0065;  // Gradient thermique (K/m)
+    static constexpr double R = 8.3143;   // Constante des gaz parfaits (J/(mol·K))
+    static constexpr double g = 9.80665;  // Gravité terrestre (m/s²)
+    static constexpr double M = 0.0289644;  // Masse molaire de l'air (kg/mol)
 };
 
 

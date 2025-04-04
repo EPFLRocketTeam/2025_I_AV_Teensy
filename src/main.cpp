@@ -19,7 +19,7 @@ Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x28, &Wire), bno3(-1, 0x28, &Wi
 BMP581 bmp1, bmp2, bmp3;
 Navigation nav;
 
-vector<double> read_data() {
+vector<double> read_data(const bool print = false) {
     double time = millis();
 
     // read bmp data
@@ -39,7 +39,27 @@ vector<double> read_data() {
 
     double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0; // to change
 
-    return {time, baro1, baro2, baro3, temperature, gps_latitude, gps_longitude, gps_altitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
+    // print data
+    if (print) {
+        Serial.print("Time: "); Serial.print(time); Serial.print(" ms, ");
+        Serial.print("Baro1: "); Serial.print(baro1); Serial.print(" Pa, ");
+        Serial.print("Baro2: "); Serial.print(baro2); Serial.print(" Pa, ");
+        Serial.print("Baro3: "); Serial.print(baro3); Serial.print(" Pa, ");
+        Serial.print("Temperature: "); Serial.print(temperature); Serial.print(" C, ");
+        Serial.print("GPS Latitude: "); Serial.print(gps_latitude); Serial.print(", ");
+        Serial.print("GPS Longitude: "); Serial.print(gps_longitude); Serial.print(", ");
+        Serial.print("GPS Altitude: "); Serial.print(gps_altitude); Serial.print(", ");
+        Serial.print("GyroX1: "); Serial.print(gyroX1); Serial.print(", ");
+        Serial.print("GyroY1: "); Serial.print(gyroY1); Serial.print(", ");
+        Serial.print("GyroZ1: "); Serial.println(gyroZ1);
+    }
+
+    Serial.print("Baro1: "); Serial.print(baro1); Serial.print(" Pa, ");
+    Serial.print("Baro2: "); Serial.print(baro2); Serial.print(" Pa, ");
+    Serial.print("Baro3: "); Serial.print(baro3); Serial.print(" Pa, ");
+    Serial.println();   
+
+    return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
 }
 
 void setup(void)
@@ -81,12 +101,13 @@ void setup(void)
     }
     Serial.println("bmp 3 complete");
 
-    nav = Navigation(read_data());
-    vector<double> state = nav.get_state();
-     Serial.print("X = ");
-    Serial.print(state[0]);
+    delay(1000);
+    // nav = Navigation(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    nav.init(read_data());
+    // vector<double> state = nav.get_state();
+    // Serial.print("X = ");
+    // Serial.print(state[0]);
     
-
     Serial.println("Setup complete");
 }
 
@@ -100,43 +121,43 @@ void loop(void)
     delay(500);
 
     // read_data();
-
     std::vector<double> data = read_data();
-    data = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // data = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    nav.update(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
+    nav.update(data);
 
     // Print the state
-    // vector<double> state = nav.get_state();
+    vector<double> state = nav.get_state();
     Serial.print("X = ");
-    // Serial.print(state[0]);
-    // Serial.print(" Y = ");
-    // Serial.print(state[1]);
-    // Serial.print(" Z = ");
-    // Serial.print(state[2]);
-    // Serial.print(" VX = ");
-    // Serial.print(state[3]);
-    // Serial.print(" VY = ");
-    // Serial.print(state[4]);
-    // Serial.print(" VZ = ");
-    // Serial.print(state[5]);
-    // Serial.print(" AX = ");
-    // Serial.print(state[6]);
-    // Serial.print(" AY = ");
-    // Serial.print(state[7]);
-    // Serial.print(" AZ = ");
-    // Serial.print(state[8]);
-    // Serial.print(" OX = ");
-    // Serial.print(state[9]);
-    // Serial.print(" OY = ");
-    // Serial.print(state[10]);
-    // Serial.print(" OZ = ");
-    // Serial.print(state[11]);
-    // Serial.print(" WX = ");
-    // Serial.print(state[12]);
-    // Serial.print(" WY = ");
-    // Serial.print(state[13]);
-    // Serial.print(" WZ = ");
-    // Serial.print(state[14]);
-    // Serial.println();
+    Serial.print(state[0]);
+    Serial.print(" Y = ");
+    Serial.print(state[1]);
+    Serial.print(" Z = ");
+    Serial.print(state[2]);
+    Serial.print(" VX = ");
+    Serial.print(state[3]);
+    Serial.print(" VY = ");
+    Serial.print(state[4]);
+    Serial.print(" VZ = ");
+    Serial.print(state[5]);
+    Serial.print(" AX = ");
+    Serial.print(state[6]);
+    Serial.print(" AY = ");
+    Serial.print(state[7]);
+    Serial.print(" AZ = ");
+    Serial.print(state[8]);
+    Serial.print(" OX = ");
+    Serial.print(state[9]);
+    Serial.print(" OY = ");
+    Serial.print(state[10]);
+    Serial.print(" OZ = ");
+    Serial.print(state[11]);
+    Serial.print(" WX = ");
+    Serial.print(state[12]);
+    Serial.print(" WY = ");
+    Serial.print(state[13]);
+    Serial.print(" WZ = ");
+    Serial.print(state[14]);
+    Serial.println();
 }
