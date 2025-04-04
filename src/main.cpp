@@ -9,7 +9,7 @@
 #include <math.h>
 
 #include "god.h"
-#include "navigation.h"
+#include "../lib/navigation/navigation.h"
 
 using namespace std;
 
