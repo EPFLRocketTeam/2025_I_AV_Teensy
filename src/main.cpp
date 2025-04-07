@@ -54,10 +54,21 @@ vector<double> read_data(const bool print = false) {
         Serial.print("GyroZ1: "); Serial.println(gyroZ1);
     }
 
-    Serial.print("Baro1: "); Serial.print(baro1); Serial.print(" Pa, ");
-    Serial.print("Baro2: "); Serial.print(baro2); Serial.print(" Pa, ");
-    Serial.print("Baro3: "); Serial.print(baro3); Serial.print(" Pa, ");
-    Serial.println();   
+    if (temperature < 0.1) temperature = 14.5;
+
+    // Serial.print("Baro1: "); 
+    Serial.print(baro1); 
+    Serial.print(" ");
+    // Serial.print("Baro2: "); 
+    Serial.print(baro2); 
+    Serial.print(" ");
+    // Serial.print("Baro3: "); 
+    Serial.print(baro3); 
+    Serial.print(" ");
+    // Serial.print("Temp: "); 
+    Serial.print(temperature); 
+    Serial.print(" ");
+    // Serial.println();   
 
     return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
 }
@@ -101,9 +112,31 @@ void setup(void)
     }
     Serial.println("bmp 3 complete");
 
-    delay(1000);
+    for (int i = 0; i < 5; ++i) {
+        read_data();
+        delay(1000);
+    }
+
+    double p0 = 0;
+    int count  = 0;
+
+    for (int i = 0; i < 100; ++i) {
+        double p = read_data()[1];
+        if (p > 100) {
+            p0 += p;
+            count++;
+        }
+        delay(10);
+    }
+
+    p0 = p0 / count;
+
     // nav = Navigation(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    nav.init(read_data());
+    vector<double> data = read_data();
+    data[1] = p0;
+    data[2] = p0;
+    data[3] = p0;
+    nav.init(data);
     // vector<double> state = nav.get_state();
     // Serial.print("X = ");
     // Serial.print(state[0]);
@@ -115,10 +148,10 @@ void loop(void)
 { 
     // Serial.println("test");
     // blink led
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(500);
+    // digitalWrite(LED_BUILTIN, HIGH);
+    // delay(500);
+    // digitalWrite(LED_BUILTIN, LOW);
+    // delay(500);
 
     // read_data();
     std::vector<double> data = read_data();
@@ -129,35 +162,37 @@ void loop(void)
 
     // Print the state
     vector<double> state = nav.get_state();
-    Serial.print("X = ");
-    Serial.print(state[0]);
-    Serial.print(" Y = ");
-    Serial.print(state[1]);
-    Serial.print(" Z = ");
+    // Serial.print("X = ");
+    // Serial.print(state[0]);
+    // Serial.print(" Y = ");
+    // Serial.print(state[1]);
+    // Serial.print(" Z = ");
     Serial.print(state[2]);
-    Serial.print(" VX = ");
-    Serial.print(state[3]);
-    Serial.print(" VY = ");
-    Serial.print(state[4]);
-    Serial.print(" VZ = ");
-    Serial.print(state[5]);
-    Serial.print(" AX = ");
-    Serial.print(state[6]);
-    Serial.print(" AY = ");
-    Serial.print(state[7]);
-    Serial.print(" AZ = ");
-    Serial.print(state[8]);
-    Serial.print(" OX = ");
-    Serial.print(state[9]);
-    Serial.print(" OY = ");
-    Serial.print(state[10]);
-    Serial.print(" OZ = ");
-    Serial.print(state[11]);
-    Serial.print(" WX = ");
-    Serial.print(state[12]);
-    Serial.print(" WY = ");
-    Serial.print(state[13]);
-    Serial.print(" WZ = ");
-    Serial.print(state[14]);
+    // Serial.print(" VX = ");
+    // Serial.print(state[3]);
+    // Serial.print(" VY = ");
+    // Serial.print(state[4]);
+    // Serial.print(" VZ = ");
+    // Serial.print(state[5]);
+    // Serial.print(" AX = ");
+    // Serial.print(state[6]);
+    // Serial.print(" AY = ");
+    // Serial.print(state[7]);
+    // Serial.print(" AZ = ");
+    // Serial.print(state[8]);
+    // Serial.print(" OX = ");
+    // Serial.print(state[9]);
+    // Serial.print(" OY = ");
+    // Serial.print(state[10]);
+    // Serial.print(" OZ = ");
+    // Serial.print(state[11]);
+    // Serial.print(" WX = ");
+    // Serial.print(state[12]);
+    // Serial.print(" WY = ");
+    // Serial.print(state[13]);
+    // Serial.print(" WZ = ");
+    // Serial.print(state[14]);
     Serial.println();
+
+    delay(10);
 }

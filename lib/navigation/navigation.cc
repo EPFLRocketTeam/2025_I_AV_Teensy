@@ -134,7 +134,7 @@ std::vector<double> Navigation::gps_baro_to_meters(const std::vector<double>& gp
 double Navigation::pressure_to_altitude(const double& pressure, const double& temperature)
 {
     prev_baro = pressure;
-    //prev_baro = (pressure*0.1 + prev_baro*0.9);  // Low-pass filter
+    // prev_baro = (pressure*0.1 + prev_baro*0.9);  // Low-pass filter
     return (temperature / L) * (1 - pow(prev_baro / sea_level_pressure, (R * L) / (g * M)));
 }
 
