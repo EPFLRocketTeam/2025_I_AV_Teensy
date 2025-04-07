@@ -54,8 +54,6 @@ vector<double> read_data(const bool print = false) {
         Serial.print("GyroZ1: "); Serial.println(gyroZ1);
     }
 
-    if (temperature < 0.1) temperature = 14.5;
-
     // Serial.print("Baro1: "); 
     Serial.print(baro1); 
     Serial.print(" ");
@@ -120,23 +118,38 @@ void setup(void)
     double p0 = 0;
     int count  = 0;
 
+    double t0 = 0;
+    int count2  = 0;
+
     for (int i = 0; i < 100; ++i) {
         double p = read_data()[1];
+        double t = read_data()[4] - 273.15;
         if (p > 100) {
             p0 += p;
             count++;
+        }
+        if (t > 1) {
+            t0 += t;
+            count2++;
         }
         delay(10);
     }
 
     p0 = p0 / count;
+    t0 = 273.15 + t0 / count2;
 
     // nav = Navigation(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     vector<double> data = read_data();
     data[1] = p0;
     data[2] = p0;
     data[3] = p0;
+    data[4] = t0;
     nav.init(data);
+
+    vector<double> state = nav.get_state();
+    Serial.print(" Z = ");
+    Serial.print(state[2]);
+
     // vector<double> state = nav.get_state();
     // Serial.print("X = ");
     // Serial.print(state[0]);
@@ -166,7 +179,7 @@ void loop(void)
     // Serial.print(state[0]);
     // Serial.print(" Y = ");
     // Serial.print(state[1]);
-    // Serial.print(" Z = ");
+    Serial.print(" Z = ");
     Serial.print(state[2]);
     // Serial.print(" VX = ");
     // Serial.print(state[3]);
