@@ -42,9 +42,11 @@ private:
 
     double avg_baro(const std::vector<double>& baro);
     std::vector<double> avg_gyro(const std::vector<double>& gyro);
+    double filter_0_temperature(const double& temperature);
 
     double prev_baro;
     double sea_level_pressure = 101325.0;
+    double prev_temperature;
     std::vector<double> initial_position;
 
     double prev_gps_time;
@@ -57,9 +59,7 @@ private:
     std::vector<double> orientation;
     std::vector<double> angular_velocity;
 
-    // static double L, R, g, M, GPS_REFREASH_PERIOD;
-
-    static constexpr double GPS_REFREASH_PERIOD = 1.0;  // seconds
+    static constexpr double GPS_REFRESH_PERIOD = 1.0;  // seconds
     static constexpr double L = 0.0065;  // Gradient thermique (K/m)
     static constexpr double R = 8.3143;   // Constante des gaz parfaits (J/(mol·K))
     static constexpr double g = 9.80665;  // Gravité terrestre (m/s²)

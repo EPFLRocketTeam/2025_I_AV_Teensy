@@ -54,8 +54,6 @@ vector<double> read_data(const bool print = false) {
         Serial.print("GyroZ1: "); Serial.println(gyroZ1);
     }
 
-    if (temperature < 0.1) temperature = 14.5;
-
     // Serial.print("Baro1: "); 
     Serial.print(baro1); 
     Serial.print(" ");
