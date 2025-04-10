@@ -15,7 +15,8 @@ using namespace std;
 
 GOD* god;
 
-Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x29, &Wire), bno3(-1, 0x29, &Wire2);
+//Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x29, &Wire), bno3(-1, 0x29, &Wire2);
+Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x28, &Wire), bno3(-1, 0x28, &Wire);
 BMP581 bmp1, bmp2, bmp3;
 Navigation nav;
 
@@ -90,11 +91,11 @@ void setup(void)
     // }
     // Serial.println("bno 2 complete");
     
-    while (!bno3.begin()) {
-        Serial.println("Ooops, no BNO055 3 detected ... Check your wiring or I2C ADDR!"); 
-        delay(100);
-    }
-    Serial.println("bno 3 complete");
+    // while (!bno3.begin()) {
+    //     Serial.println("Ooops, no BNO055 3 detected ... Check your wiring or I2C ADDR!"); 
+    //     delay(100);
+    // }
+    // Serial.println("bno 3 complete");
 
     while(bmp1.beginI2C(0x47, Wire) != BMP5_OK) {
         Serial.println("Error: BMP581 1 not connected, check wiring and I2C address!"); 
@@ -113,87 +114,96 @@ void setup(void)
     }
     Serial.println("bmp 3 complete");
 
-    // for (int i = 0; i < 5; ++i) {
-    //     read_data();
-    //     delay(1000);
-    // }
+    for (int i = 0; i < 5; ++i) {
+        read_data();
+        delay(1000);
+    }
 
-    // double p0 = 0;
-    // int count  = 0;
+    double p0 = 0;
+    int count  = 0;
+    double t0 = 0;
+    int count2  = 0;
 
-    // for (int i = 0; i < 100; ++i) {
-    //     double p = read_data()[1];
-    //     if (p > 100) {
-    //         p0 += p;
-    //         count++;
-    //     }
-    //     delay(10);
-    // }
+    for (int i = 0; i < 100; ++i) {
+        double p = read_data()[1];
+        double t = read_data()[4] - 273.15;
+        if (p > 100) {
+            p0 += p;
+            count++;
+        }
+        if (t > 1) {
+            t0 += t;
+            count2++;
+        }
+        delay(10);
+    }
 
-    // p0 = p0 / count;
+    p0 = p0 / count;
+    t0 = 273.15 + t0 / count2;
 
-    // // nav = Navigation(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    // vector<double> data = read_data();
-    // data[1] = p0;
-    // data[2] = p0;
-    // data[3] = p0;
-    // nav.init(data);
-    // vector<double> state = nav.get_state();
-    // Serial.print("X = ");
-    // Serial.print(state[0]);
+    // nav = Navigation(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    vector<double> data = read_data();
+    data[1] = p0;
+    data[2] = p0;
+    data[3] = p0;
+    data[4] = t0;
+    nav.init(data);
+    vector<double> state = nav.get_state();
+    Serial.print("Z = ");
+    Serial.print(state[2]);
     
     Serial.println("Setup complete");
 }
 
 void loop(void)
 { 
-    // // Serial.println("test");
-    // // blink led
-    // // digitalWrite(LED_BUILTIN, HIGH);
-    // // delay(500);
-    // // digitalWrite(LED_BUILTIN, LOW);
-    // // delay(500);
+    // Serial.println("test");
+    // blink led
+    // digitalWrite(LED_BUILTIN, HIGH);
+    // delay(500);
+    // digitalWrite(LED_BUILTIN, LOW);
+    // delay(500);
 
-    // // read_data();
-    // std::vector<double> data = read_data();
-    // // data = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // read_data();
+    std::vector<double> data = read_data();
+    // data = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    // // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
-    // nav.update(data);
+    // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
+    nav.update(data);
 
-    // // Print the state
-    // vector<double> state = nav.get_state();
-    // // Serial.print("X = ");
-    // // Serial.print(state[0]);
-    // // Serial.print(" Y = ");
-    // // Serial.print(state[1]);
-    // // Serial.print(" Z = ");
-    // Serial.print(state[2]);
-    // // Serial.print(" VX = ");
-    // // Serial.print(state[3]);
-    // // Serial.print(" VY = ");
-    // // Serial.print(state[4]);
-    // // Serial.print(" VZ = ");
-    // // Serial.print(state[5]);
-    // // Serial.print(" AX = ");
-    // // Serial.print(state[6]);
-    // // Serial.print(" AY = ");
-    // // Serial.print(state[7]);
-    // // Serial.print(" AZ = ");
-    // // Serial.print(state[8]);
-    // // Serial.print(" OX = ");
-    // // Serial.print(state[9]);
-    // // Serial.print(" OY = ");
-    // // Serial.print(state[10]);
-    // // Serial.print(" OZ = ");
-    // // Serial.print(state[11]);
-    // // Serial.print(" WX = ");
-    // // Serial.print(state[12]);
-    // // Serial.print(" WY = ");
-    // // Serial.print(state[13]);
-    // // Serial.print(" WZ = ");
-    // // Serial.print(state[14]);
-    // Serial.println();
+    // Print the state
+    vector<double> state = nav.get_state();
+    // Serial.print("X = ");
+    // Serial.print(state[0]);
+    // Serial.print(" Y = ");
+    // Serial.print(state[1]);
+    // Serial.print(" Z = ");
+    Serial.print(state[2]);
+    // Serial.print(" VX = ");
+    // Serial.print(state[3]);
+    // Serial.print(" VY = ");
+    // Serial.print(state[4]);
+    // Serial.print(" VZ = ");
+    // Serial.print(state[5]);
+    // Serial.print(" AX = ");
+    // Serial.print(state[6]);
+    // Serial.print(" AY = ");
+    // Serial.print(state[7]);
+    // Serial.print(" AZ = ");
+    // Serial.print(state[8]);
+    // Serial.print(" OX = ");
+    // Serial.print(state[9]);
+    // Serial.print(" OY = ");
+    // Serial.print(state[10]);
+    // Serial.print(" OZ = ");
+    // Serial.print(state[11]);
+    // Serial.print(" WX = ");
+    // Serial.print(state[12]);
+    // Serial.print(" WY = ");
+    // Serial.print(state[13]);
+    // Serial.print(" WZ = ");
+    // Serial.print(state[14]);
+    Serial.println();
 
-    // delay(10);
+    delay(10);
 }
