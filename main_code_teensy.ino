@@ -86,7 +86,8 @@ struct ControlOutput
     }
 };
 
-RawOutput received_output;
+ControlOutput received_control_output;
+double uart_round_trip_time = -1;
 
 uint32_t timer = millis();
 
@@ -141,9 +142,10 @@ void loop()
     {
         unarmed_output();
 
-        ControlInputPacket control_input;
-        control_input.armed = false;
-        control_input.timestamp = millis();
+        ControlInputPacket control_input = {
+            false,
+            millis(),
+        };
         SendControlInput(control_input);
     }
     // armed behavior
@@ -161,10 +163,10 @@ void loop()
         };
         SendControlInput(control_input);
 
-        // TODO: Check if sequence number has increased here
-        write_raw_outputs(received_output);
+        RawOutput raw_out = to_raw(received_control_output.toDegrees());
+        write_raw_outputs(raw_out);
 
-        print_state(loop_start - timer, received_output, sensor_data);
+        print_state(loop_start - timer, raw_out, sensor_data);
 
         if (loop_start - lastSDWrite > SD_FLUSH_PERIOD)
         {

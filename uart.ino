@@ -11,11 +11,9 @@ void ReceiveControlOutput(Payload &payload)
         return;
     }
 
-    // TODO: Average this value
-    // TODO: Log this to SD card
-    double round_trip_time = millis() - output_packet.timestamp;
+    uart_round_trip_time = millis() - output_packet.timestamp;
     Serial.print("Round trip time: ");
-    Serial.println(round_trip_time);
+    Serial.println(uart_round_trip_time);
 
     // Serial.print("Received control output: d1=");
     // Serial.print(output.d1);
@@ -26,7 +24,7 @@ void ReceiveControlOutput(Payload &payload)
     // Serial.print(", mz=");
     // Serial.println(output.mz);
 
-    received_output = {
+    received_control_output = {
         output_packet.d1,
         output_packet.d2,
         output_packet.avg_throttle,
