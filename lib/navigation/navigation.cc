@@ -50,7 +50,7 @@ void Navigation::update(double time, double baro1, double baro2, double baro3, d
     vector<double> new_velocity(3, 0.0);
     vector<double> new_acceleration(3, 0.0);
 
-    if (false)// ((time - prev_gps_time)/1000 >= GPS_REFRESH_PERIOD)
+    if((time - prev_gps_time)/1000 >= GPS_REFRESH_PERIOD)
     {
         new_position = gps_baro_to_meters(gps, baro, temperature);
         new_position[0] = new_position[0] - initial_position[0];

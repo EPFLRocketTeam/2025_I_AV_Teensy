@@ -8,6 +8,9 @@
 #include <vector>
 #include <math.h>
 
+#include <Arduino.h>
+#include <SparkFun_u-blox_GNSS_Arduino_Library.h>
+
 #include "god.h"
 #include "../lib/navigation/navigation.h"
 
@@ -15,9 +18,11 @@ using namespace std;
 
 GOD* god;
 
+
 //Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x29, &Wire), bno3(-1, 0x29, &Wire2);
 Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x28, &Wire), bno3(-1, 0x28, &Wire);
 BMP581 bmp1, bmp2, bmp3;
+SFE_UBLOX_GNSS myGNSS; // GPS object
 Navigation nav;
 
 vector<double> read_data(const bool print = false) {
@@ -38,7 +43,38 @@ vector<double> read_data(const bool print = false) {
     double gyroX2 = angVelocityData2.gyro.x, gyroY2 = angVelocityData2.gyro.y, gyroZ2 = angVelocityData2.gyro.z;
     double gyroX3 = angVelocityData3.gyro.x, gyroY3 = angVelocityData3.gyro.y, gyroZ3 = angVelocityData3.gyro.z;
 
-    double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0; // to change
+    // read gps data
+    double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0, gps_speed = 0.0, gps_velN = 0.0, gps_velE = 0.0, gps_velD = 0.0; // to change
+    gps_latitude = myGNSS.getLatitude();
+    gps_longitude = myGNSS.getLongitude();
+    gps_altitude = myGNSS.getAltitudeMSL();
+    gps_speed = myGNSS.getGroundSpeed();
+    gps_velN = myGNSS.getNedNorthVel();
+    gps_velE = myGNSS.getNedEastVel();
+    gps_velD = myGNSS.getNedDownVel();
+    uint8_t fixType = myGNSS.getFixType();
+    uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
+    if (print) {
+        Serial.print(F("Fix Type: "));
+        Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
+    }
+    // if (myGNSS.getPVT() == true)
+    // {
+    //     gps_latitude = myGNSS.getLatitude();
+    //     gps_longitude = myGNSS.getLongitude();
+    //     gps_altitude = myGNSS.getAltitudeMSL();
+    //     gps_speed = myGNSS.getGroundSpeed();
+    //     gps_velN = myGNSS.getNedNorthVel();
+    //     gps_velE = myGNSS.getNedEastVel();
+    //     gps_velD = myGNSS.getNedDownVel();
+
+    //     uint8_t fixType = myGNSS.getFixType();
+    //     uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
+    //     if (print) {
+    //         Serial.print(F("Fix Type: "));
+    //         Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
+    //     }
+    // }        
 
     // print data
     if (print) {
@@ -49,25 +85,46 @@ vector<double> read_data(const bool print = false) {
         Serial.print("Temperature: "); Serial.print(temperature); Serial.print(" C, ");
         Serial.print("GPS Latitude: "); Serial.print(gps_latitude); Serial.print(", ");
         Serial.print("GPS Longitude: "); Serial.print(gps_longitude); Serial.print(", ");
-        Serial.print("GPS Altitude: "); Serial.print(gps_altitude); Serial.print(", ");
+        Serial.print("GPS Altitude: "); Serial.print(gps_altitude/1000.0); Serial.print(", ");
         Serial.print("GyroX1: "); Serial.print(gyroX1); Serial.print(", ");
         Serial.print("GyroY1: "); Serial.print(gyroY1); Serial.print(", ");
         Serial.print("GyroZ1: "); Serial.println(gyroZ1);
+
+        // Serial.print(F("Lat: "));
+        // Serial.print(gps_latitude);
+        // Serial.print(F(" Long: "));
+        // Serial.print(gps_longitude);
+        // Serial.print(F(" (degrees * 10^-7)"));
+        // Serial.print(F(" Alt: "));
+        // Serial.print(gps_altitude);
+        // Serial.print(F(" (mm)"));
+        // Serial.print(F("Ground Speed: "));
+        // Serial.print(gps_speed / 1000.0);
+        // Serial.print(F(" m/s"));
+        // Serial.print(F(" VelN: "));
+        // Serial.print(gps_velN / 1000.0);
+        // Serial.print(F(" m/s"));
+        // Serial.print(F(" VelE: "));
+        // Serial.print(gps_velE / 1000.0);
+        // Serial.print(F(" m/s"));
+        // Serial.print(F(" VelD: "));
+        // Serial.print(gps_velD / 1000.0);
+        // Serial.print(F(" m/s"));
     }
 
-    // Serial.print("Baro1: "); 
-    Serial.print(baro1); 
-    Serial.print(" ");
-    // Serial.print("Baro2: "); 
-    Serial.print(baro2); 
-    Serial.print(" ");
-    // Serial.print("Baro3: "); 
-    Serial.print(baro3); 
-    Serial.print(" ");
-    // Serial.print("Temp: "); 
-    Serial.print(temperature); 
-    Serial.print(" ");
-    // Serial.println();   
+    // // Serial.print("Baro1: "); 
+    // Serial.print(baro1); 
+    // Serial.print(" ");
+    // // Serial.print("Baro2: "); 
+    // Serial.print(baro2); 
+    // Serial.print(" ");
+    // // Serial.print("Baro3: "); 
+    // Serial.print(baro3); 
+    // Serial.print(" ");
+    // // Serial.print("Temp: "); 
+    // Serial.print(temperature); 
+    // Serial.print(" ");
+    // // Serial.println();   
 
     return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
 }
@@ -78,6 +135,17 @@ void setup(void)
     Serial.println("serial complete");
     Wire.begin();
     Wire2.begin();
+
+    while (myGNSS.begin() == false) //on attend la connection en I2C
+    {
+        Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
+        delay(100);
+    }
+    Serial.println("GNSS module connected");
+
+    myGNSS.setI2COutput(COM_TYPE_UBX);// on veut recevoir seulement les données de position on veut pas de RTCM ou de NMEA
+    myGNSS.setNavigationFrequency(5, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
+    // la configuration VAL_LAYER_RAM ne met la frequance que dans la ram a enlever si besoin
 
     while (!bno1.begin()) {
         Serial.println("Ooops, no BNO055 1 detected ... Check your wiring or I2C ADDR!"); 
@@ -114,41 +182,61 @@ void setup(void)
     }
     Serial.println("bmp 3 complete");
 
+    // lit les premières valeurs dand le vide au cas ou le capteur est pas encore stable
     for (int i = 0; i < 5; ++i) {
         read_data();
         delay(1000);
     }
 
-    double p0 = 0;
-    int count  = 0;
-    double t0 = 0;
+    //Fait une moyenne des 50 premières valeurs de pression et de temperature pour initialiser la navigation avec ca
+    double p01 = 0;
+    int count1  = 0;
+    double p02 = 0;
     int count2  = 0;
-
-    for (int i = 0; i < 100; ++i) {
-        double p = read_data()[1];
+    double p03 = 0;
+    int count3  = 0;
+    double t0 = 0;
+    int count4  = 0;
+    for (int i = 0; i < 50; ++i) {
+        double p1 = read_data()[1];
+        double p2 = read_data()[2];
+        double p3 = read_data()[3];
         double t = read_data()[4] - 273.15;
-        if (p > 100) {
-            p0 += p;
-            count++;
+        if (p1 > 100) {
+            p01 += p1;
+            count1++;
+        }
+        if (p2 > 100) {
+            p02 += p2;
+            count2++;
+        }
+        if (p3 > 100) {
+            p03 += p3;
+            count3++;
         }
         if (t > 1) {
             t0 += t;
-            count2++;
+            count4++;
         }
         delay(10);
     }
+    p01 = p01 / count1;
+    p02 = p02 / count2;
+    p03 = p03 / count3;
+    t0 = 273.15 + t0 / count4;
 
-    p0 = p0 / count;
-    t0 = 273.15 + t0 / count2;
-
-    // nav = Navigation(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //initialise la navigation
     vector<double> data = read_data();
-    data[1] = p0;
-    data[2] = p0;
-    data[3] = p0;
+    data[1] = p01;
+    data[2] = p02;
+    data[3] = p03;
     data[4] = t0;
     nav.init(data);
     vector<double> state = nav.get_state();
+    Serial.print("X = ");
+    Serial.print(state[0]);
+    Serial.print("Y = ");
+    Serial.print(state[1]);
     Serial.print("Z = ");
     Serial.print(state[2]);
     
@@ -164,45 +252,48 @@ void loop(void)
     // digitalWrite(LED_BUILTIN, LOW);
     // delay(500);
 
-    // read_data();
+    //lit les nouvelles données
     std::vector<double> data = read_data();
-    // data = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
+
+    //appel l'update de la navigation avec les nouvelles données
     nav.update(data);
 
     // Print the state
     vector<double> state = nav.get_state();
-    // Serial.print("X = ");
-    // Serial.print(state[0]);
-    // Serial.print(" Y = ");
-    // Serial.print(state[1]);
+    Serial.print(" Time: ");
+    Serial.print(data[0]);
+    Serial.print(" X = ");
+    Serial.print(state[0]);
+    Serial.print(" Y = ");
+    Serial.print(state[1]);
     // Serial.print(" Z = ");
-    Serial.print(state[2]);
+    // Serial.print(state[2]);
     // Serial.print(" VX = ");
     // Serial.print(state[3]);
     // Serial.print(" VY = ");
     // Serial.print(state[4]);
-    // Serial.print(" VZ = ");
-    // Serial.print(state[5]);
-    // Serial.print(" AX = ");
-    // Serial.print(state[6]);
-    // Serial.print(" AY = ");
-    // Serial.print(state[7]);
-    // Serial.print(" AZ = ");
-    // Serial.print(state[8]);
-    // Serial.print(" OX = ");
-    // Serial.print(state[9]);
-    // Serial.print(" OY = ");
-    // Serial.print(state[10]);
-    // Serial.print(" OZ = ");
-    // Serial.print(state[11]);
-    // Serial.print(" WX = ");
-    // Serial.print(state[12]);
-    // Serial.print(" WY = ");
-    // Serial.print(state[13]);
-    // Serial.print(" WZ = ");
-    // Serial.print(state[14]);
+    // // Serial.print(" VZ = ");
+    // // Serial.print(state[5]);
+    // // Serial.print(" AX = ");
+    // // Serial.print(state[6]);
+    // // Serial.print(" AY = ");
+    // // Serial.print(state[7]);
+    // // Serial.print(" AZ = ");
+    // // Serial.print(state[8]);
+    // // Serial.print(" OX = ");
+    // // Serial.print(state[9]);
+    // // Serial.print(" OY = ");
+    // // Serial.print(state[10]);
+    // // Serial.print(" OZ = ");
+    // // Serial.print(state[11]);
+    // // Serial.print(" WX = ");
+    // // Serial.print(state[12]);
+    // // Serial.print(" WY = ");
+    // // Serial.print(state[13]);
+    // // Serial.print(" WZ = ");
+    // // Serial.print(state[14]);
     Serial.println();
 
     delay(10);
