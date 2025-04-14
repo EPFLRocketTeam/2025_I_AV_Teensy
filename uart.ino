@@ -1,4 +1,4 @@
-TeensyUART uart_manager(Serial7, 115200);
+TeensyUART uart_manager(Serial7, 460800);
 
 void ReceiveControlOutput(Payload &payload)
 {
@@ -51,8 +51,8 @@ bool SendControlInput(const ControlInputPacket &input)
 
     Serial.print("Sent control input: armed=");
     Serial.print(input.armed);
-    Serial.print(", thrust=");
-    Serial.print(input.inline_thrust);
+    Serial.print(", timestamp=");
+    Serial.print(input.timestamp);
     Serial.println(", rest_of_the_payload=TODO");
 
     return true;
