@@ -48,12 +48,11 @@ vector<double> read_data(const bool print = false) {
     double gyroX2 = angVelocityData2.gyro.x, gyroY2 = angVelocityData2.gyro.y, gyroZ2 = angVelocityData2.gyro.z;
     double gyroX3 = angVelocityData3.gyro.x, gyroY3 = angVelocityData3.gyro.y, gyroZ3 = angVelocityData3.gyro.z;
 
-    bno1.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-    double roll = orientationData.orientation.x; // Roll angle in degrees
-    double pitch = orientationData.orientation.y; // Pitch angle in degrees
-
-    Serial.print("roll: "); Serial.print(roll); Serial.print(", ");
-    Serial.print("pitch: "); Serial.print(pitch); Serial.print(" ---- ");
+    // bno1.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+    // double roll = orientationData.orientation.x; // Roll angle in degrees
+    // double pitch = orientationData.orientation.y; // Pitch angle in degrees
+    // Serial.print("roll: "); Serial.print(roll); Serial.print(", ");
+    // Serial.print("pitch: "); Serial.print(pitch); Serial.print(" ---- ");
 
     // read gps data
     double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0, gps_speed = 0.0, gps_velN = 0.0, gps_velE = 0.0, gps_velD = 0.0; // to change
@@ -187,7 +186,7 @@ void setup(void)
     Wire.begin();
     Wire2.begin();
 
-
+    /*
     if (!SD.begin(chipSelect)) {
         Serial.println("SD card initialization failed!");
         return;
@@ -198,7 +197,7 @@ void setup(void)
     if (!NavLog) {
         Serial.println("Failed to create flight log file!");
         return;
-    }
+    }*/
     // Write the CSV header
     NavLog.println("Time(ms), X(m), Y(m), Z(m), VX(m/s), VY(m/s), VZ(m/s), AX(m/s^2), AY(m/s^2), AZ(m/s^2), OX(degrees), OY(degrees), OZ(degrees), WX(degrees/s), WY(degrees/s), WZ(degrees/s)");
     NavLog.flush();
@@ -328,45 +327,45 @@ void loop(void)
     // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
 
     //appel l'update de la navigation avec les nouvelles données
-    /*nav.update(data);
+    nav.update(data);
 
     // Print the state
     vector<double> state = nav.get_state();
-    Serial.print(" Time: ");
-    Serial.print(data[0]);
+    //Serial.print(" Time: ");
+    Serial.println(data[0]);
     Serial.print(" X = ");
     Serial.print(state[0]);
     Serial.print(" Y = ");
-    Serial.print(state[1]);*/
-    // Serial.print(" Z = ");
-    // Serial.print(state[2]);
-    // Serial.print(" VX = ");
-    // Serial.print(state[3]);
-    // Serial.print(" VY = ");
-    // Serial.print(state[4]);
-    // // Serial.print(" VZ = ");
-    // // Serial.print(state[5]);
-    // // Serial.print(" AX = ");
-    // // Serial.print(state[6]);
-    // // Serial.print(" AY = ");
-    // // Serial.print(state[7]);
-    // // Serial.print(" AZ = ");
-    // // Serial.print(state[8]);
-    // // Serial.print(" OX = ");
-    // // Serial.print(state[9]);
-    // // Serial.print(" OY = ");
-    // // Serial.print(state[10]);
-    // // Serial.print(" OZ = ");
-    // // Serial.print(state[11]);
-    // // Serial.print(" WX = ");
-    // // Serial.print(state[12]);
-    // // Serial.print(" WY = ");
-    // // Serial.print(state[13]);
-    // // Serial.print(" WZ = ");
-    // // Serial.print(state[14]);
+    Serial.print(state[1]);
+    Serial.print(" Z = ");
+    Serial.print(state[2]);
+    Serial.print(" VX = ");
+    Serial.print(state[3]);
+    Serial.print(" VY = ");
+    Serial.print(state[4]);
+    Serial.print(" VZ = ");
+    Serial.print(state[5]);
+    Serial.print(" AX = ");
+    Serial.print(state[6]);
+    Serial.print(" AY = ");
+    Serial.print(state[7]);
+    Serial.print(" AZ = ");
+    Serial.print(state[8]);
+    Serial.print(" OX = ");
+    Serial.print(state[9]);
+    Serial.print(" OY = ");
+    Serial.print(state[10]);
+    Serial.print(" OZ = ");
+    Serial.print(state[11]);
+    Serial.print(" WX = ");
+    Serial.print(state[12]);
+    Serial.print(" WY = ");
+    Serial.print(state[13]);
+    Serial.print(" WZ = ");
+    Serial.print(state[14]);
     Serial.println();
 
-    write_data(data, state);
+    //write_data(data, state);
 
-    delay(30);
+    delay(10);
 }
