@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include <Arduino.h>
+#include <SD.h>
 #include <SparkFun_u-blox_GNSS_Arduino_Library.h>
 
 #include "god.h"
@@ -25,6 +26,11 @@ BMP581 bmp1, bmp2, bmp3;
 SFE_UBLOX_GNSS myGNSS; // GPS object
 Navigation nav;
 
+//SD card logging
+const int chipSelect = BUILTIN_SDCARD; // Teensy has a built-in SD card reader
+File flightLog;
+unsigned long startTime;
+
 vector<double> read_data(const bool print = false) {
     double time = millis();
 
@@ -35,7 +41,7 @@ vector<double> read_data(const bool print = false) {
     double temperature = data1.temperature;
 
     // read bno data
-    sensors_event_t  angVelocityData1, angVelocityData2, angVelocityData3;
+    sensors_event_t  angVelocityData1, angVelocityData2, angVelocityData3, orientationData;
     bno1.getEvent(&angVelocityData1, Adafruit_BNO055::VECTOR_GYROSCOPE); 
     bno2.getEvent(&angVelocityData2, Adafruit_BNO055::VECTOR_GYROSCOPE);
     bno3.getEvent(&angVelocityData3, Adafruit_BNO055::VECTOR_GYROSCOPE);
@@ -43,9 +49,16 @@ vector<double> read_data(const bool print = false) {
     double gyroX2 = angVelocityData2.gyro.x, gyroY2 = angVelocityData2.gyro.y, gyroZ2 = angVelocityData2.gyro.z;
     double gyroX3 = angVelocityData3.gyro.x, gyroY3 = angVelocityData3.gyro.y, gyroZ3 = angVelocityData3.gyro.z;
 
+    bno1.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+    double roll = orientationData.orientation.x; // Roll angle in degrees
+    double pitch = orientationData.orientation.y; // Pitch angle in degrees
+
+    Serial.print("roll: "); Serial.print(roll); Serial.print(", ");
+    Serial.print("pitch: "); Serial.print(pitch); Serial.print(" ---- ");
+
     // read gps data
     double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0, gps_speed = 0.0, gps_velN = 0.0, gps_velE = 0.0, gps_velD = 0.0; // to change
-    gps_latitude = myGNSS.getLatitude();
+    /*gps_latitude = myGNSS.getLatitude();
     gps_longitude = myGNSS.getLongitude();
     gps_altitude = myGNSS.getAltitudeMSL();
     gps_speed = myGNSS.getGroundSpeed();
@@ -57,7 +70,7 @@ vector<double> read_data(const bool print = false) {
     if (print) {
         Serial.print(F("Fix Type: "));
         Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
-    }
+    }*/
     // if (myGNSS.getPVT() == true)
     // {
     //     gps_latitude = myGNSS.getLatitude();
@@ -258,7 +271,7 @@ void loop(void)
     // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
 
     //appel l'update de la navigation avec les nouvelles données
-    nav.update(data);
+    /*nav.update(data);
 
     // Print the state
     vector<double> state = nav.get_state();
@@ -267,7 +280,7 @@ void loop(void)
     Serial.print(" X = ");
     Serial.print(state[0]);
     Serial.print(" Y = ");
-    Serial.print(state[1]);
+    Serial.print(state[1]);*/
     // Serial.print(" Z = ");
     // Serial.print(state[2]);
     // Serial.print(" VX = ");
@@ -296,5 +309,5 @@ void loop(void)
     // // Serial.print(state[14]);
     Serial.println();
 
-    delay(10);
+    delay(30);
 }
