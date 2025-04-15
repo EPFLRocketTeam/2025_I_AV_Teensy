@@ -28,8 +28,7 @@ Navigation nav;
 
 //SD card logging
 const int chipSelect = BUILTIN_SDCARD; // Teensy has a built-in SD card reader
-File flightLog;
-unsigned long startTime;
+File NavLog;
 
 vector<double> read_data(const bool print = false) {
     double time = millis();
@@ -58,7 +57,7 @@ vector<double> read_data(const bool print = false) {
 
     // read gps data
     double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0, gps_speed = 0.0, gps_velN = 0.0, gps_velE = 0.0, gps_velD = 0.0; // to change
-    /*gps_latitude = myGNSS.getLatitude();
+    gps_latitude = myGNSS.getLatitude();
     gps_longitude = myGNSS.getLongitude();
     gps_altitude = myGNSS.getAltitudeMSL();
     gps_speed = myGNSS.getGroundSpeed();
@@ -70,7 +69,7 @@ vector<double> read_data(const bool print = false) {
     if (print) {
         Serial.print(F("Fix Type: "));
         Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
-    }*/
+    }
     // if (myGNSS.getPVT() == true)
     // {
     //     gps_latitude = myGNSS.getLatitude();
@@ -142,6 +141,45 @@ vector<double> read_data(const bool print = false) {
     return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
 }
 
+// Function to write data to the flight log file
+// This function takes a vector of data and a vector of state variables as input
+void write_data(const vector<double>& data, const vector<double>& state) {
+    // Write the data to the flight log file
+    NavLog.print(data[0]); // Time(ms)
+    NavLog.print(",");
+    NavLog.print(state[0]); // x(m)
+    NavLog.print(",");
+    NavLog.print(state[1]); // y(m)
+    NavLog.print(",");
+    NavLog.print(state[2]); // z(m)
+    NavLog.print(",");
+    NavLog.print(state[3]); // vx(m/s)
+    NavLog.print(",");
+    NavLog.print(state[4]); // vy(m/s)
+    NavLog.print(",");
+    NavLog.print(state[5]); // vz(m/s)
+    NavLog.print(",");
+    NavLog.print(state[6]); // ax(m/s^2)
+    NavLog.print(",");
+    NavLog.print(state[7]); //  ay(m/s^2)
+    NavLog.print(",");
+    NavLog.print(state[8]); // az(m/s^2)
+    NavLog.print(",");
+    NavLog.print(state[9]); // OX(degrees)
+    NavLog.print(",");
+    NavLog.println(state[10]); // OY(degrees)
+    NavLog.print(",");
+    NavLog.print(state[11]); // OZ(degrees)
+    NavLog.print(",");
+    NavLog.print(state[12]); // WX(degrees/s)
+    NavLog.print(",");
+    NavLog.print(state[13]); // WY(degrees/s)
+    NavLog.print(",");
+    NavLog.println(state[14]); // WZ(degrees/s)
+
+    NavLog.flush(); // Ensure data is written to the SD card
+}
+
 void setup(void)
 {
     Serial.begin(115200); // 110, 300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
@@ -149,12 +187,30 @@ void setup(void)
     Wire.begin();
     Wire2.begin();
 
+
+    if (!SD.begin(chipSelect)) {
+        Serial.println("SD card initialization failed!");
+        return;
+    }
+    Serial.println("SD card initialized.");
+    // Create or open the flight log file
+    NavLog = SD.open("flight.csv", FILE_WRITE);
+    if (!NavLog) {
+        Serial.println("Failed to create flight log file!");
+        return;
+    }
+    // Write the CSV header
+    NavLog.println("Time(ms), X(m), Y(m), Z(m), VX(m/s), VY(m/s), VZ(m/s), AX(m/s^2), AY(m/s^2), AZ(m/s^2), OX(degrees), OY(degrees), OZ(degrees), WX(degrees/s), WY(degrees/s), WZ(degrees/s)");
+    NavLog.flush();
+
+
     while (myGNSS.begin() == false) //on attend la connection en I2C
     {
         Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
         delay(100);
     }
     Serial.println("GNSS module connected");
+
 
     myGNSS.setI2COutput(COM_TYPE_UBX);// on veut recevoir seulement les données de position on veut pas de RTCM ou de NMEA
     myGNSS.setNavigationFrequency(5, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
@@ -165,6 +221,7 @@ void setup(void)
         delay(100);
     }
     Serial.println("bno 1 complete");
+
 
     // while (!bno2.begin()) {
     //     Serial.println("Ooops, no BNO055 2 detected ... Check your wiring or I2C ADDR!"); 
@@ -308,6 +365,8 @@ void loop(void)
     // // Serial.print(" WZ = ");
     // // Serial.print(state[14]);
     Serial.println();
+
+    write_data(data, state);
 
     delay(30);
 }
