@@ -10,7 +10,7 @@
 
 #include <Arduino.h>
 #include <SD.h>
-#include <SparkFun_u-blox_GNSS_Arduino_Library.h>
+#include <SparkFun_u-blox_GNSS_v3.h>
 
 #include "god.h"
 #include "../lib/navigation/navigation.h"
@@ -209,11 +209,12 @@ void setup(void)
         delay(100);
     }
     Serial.println("GNSS module connected");
-
-
+    
     myGNSS.setI2COutput(COM_TYPE_UBX);// on veut recevoir seulement les données de position on veut pas de RTCM ou de NMEA
-    myGNSS.setNavigationFrequency(5, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
+    myGNSS.setNavigationFrequency(10, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
     // la configuration VAL_LAYER_RAM ne met la frequance que dans la ram a enlever si besoin
+    myGNSS.setAutoPVT(true); // Active l’envoi automatique des messages NAV-PVT
+    myGNSS.setI2CpollingWait(10);
 
     while (!bno1.begin()) {
         Serial.println("Ooops, no BNO055 1 detected ... Check your wiring or I2C ADDR!"); 
