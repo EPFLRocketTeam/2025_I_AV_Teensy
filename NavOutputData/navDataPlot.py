@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 # === Load your CSV file ===
-filename = "NavOutputData/navFlight.csv"  # Change to your filename
+filename = "NavOutputData/staticFilght_3.csv"  # Change to your filename
 df = pd.read_csv(filename)
 
 # Affichage rapide pour test
