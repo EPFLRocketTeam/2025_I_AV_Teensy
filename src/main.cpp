@@ -13,7 +13,7 @@
 #include <SparkFun_u-blox_GNSS_v3.h>
 
 #include "god.h"
-#include "../lib/navigation/navigation.h"
+#include "../lib/navigation_v2/navigation_v2.h"
 
 using namespace std;
 
