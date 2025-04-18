@@ -60,13 +60,18 @@ vector<double> read_data(const bool print = false) {
     double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0, gps_speed = 0.0, gps_velN = 0.0, gps_velE = 0.0, gps_velD = 0.0; // to change
     gps_latitude = myGNSS.getLatitude();
     gps_longitude = myGNSS.getLongitude();
-    gps_altitude = myGNSS.getAltitudeMSL();
+    gps_altitude = myGNSS.getAltitudeMSL() / 1000.0; // in meters
     gps_speed = myGNSS.getGroundSpeed();
     gps_velN = myGNSS.getNedNorthVel();
     gps_velE = myGNSS.getNedEastVel();
     gps_velD = myGNSS.getNedDownVel();
     uint8_t fixType = myGNSS.getFixType();
-    uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
+    uint8_t carrSoln = myGNSS.getCarrierSolutionType();
+    // uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
+
+    Serial.print(F("carrSoln: "));
+    Serial.println(carrSoln);
+
     if (print) {
         Serial.print(F("Fix Type: "));
         Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
@@ -139,7 +144,7 @@ vector<double> read_data(const bool print = false) {
     // Serial.print(" ");
     // // Serial.println();   
 
-    return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
+    return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gps_velN, gps_velE, gps_velD, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
 }
 
 // Function to write data to the navFlight log file
@@ -196,19 +201,18 @@ void setup(void)
         delay(100);
     }
     Serial.println("GNSS module connected");
-
     myGNSS.setI2COutput(COM_TYPE_UBX);// on veut recevoir seulement les données de position on veut pas de RTCM ou de NMEA
     myGNSS.setNavigationFrequency(10, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
     // la configuration VAL_LAYER_RAM ne met la frequance que dans la ram a enlever si besoin
     myGNSS.setAutoPVT(true); // Active l’envoi automatique des messages NAV-PVT
     myGNSS.setI2CpollingWait(10);
 
+
     while (!bno1.begin()) {
         Serial.println("Ooops, no BNO055 1 detected ... Check your wiring or I2C ADDR!"); 
         delay(100);
     }
     Serial.println("bno 1 complete");
-
 
     // while (!bno2.begin()) {
     //     Serial.println("Ooops, no BNO055 2 detected ... Check your wiring or I2C ADDR!"); 
@@ -321,7 +325,7 @@ void loop(void)
 
     // Print the state
     vector<double> state = nav.get_state();
-    //Serial.print(" Time: ");
+    Serial.print(" Time: ");
     Serial.println(data[0]);
     Serial.print(" X = ");
     Serial.print(state[0]);
@@ -360,6 +364,12 @@ void loop(void)
     //delay(10);
 
     double loopTime = millis() - startTime; // temps depuis le début de la boucle
+
+    if(loopTime < 10) {
+        delay(10 - loopTime); // on attend le temps qu'il reste pour faire 10ms
+    }
+
+    loopTime = millis() - startTime; // temps depuis le début de la boucle
 
     NavLog.print(",");
     NavLog.print(loopTime);

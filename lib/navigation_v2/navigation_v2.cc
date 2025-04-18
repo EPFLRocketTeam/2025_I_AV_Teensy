@@ -51,13 +51,26 @@ void Navigation::update(double time, double baro1, double baro2, double baro3, d
     vector<double> new_velocity(3, 0.0);
     vector<double> new_acceleration(3, 0.0);
 
-    if((time - prev_gps_time)/1000 >= GPS_REFRESH_PERIOD) //0.2 [s]
+    new_position = gps_to_meter(gps);
+    new_position[0] = new_position[0] - initial_position[0];
+    new_position[1] = new_position[1] - initial_position[1];
+    new_position[2] = new_position[2] - initial_position[2];
+
+    new_velocity = {gpsLatitudeVelocity/1000.0, gpsLongitudeVelocity/1000.0, gpsAltitudeVelocity/1000.0};
+
+    new_acceleration[0] = (new_velocity[0] - velocity[0]) / ((time - prev_gps_time)/1000);
+    new_acceleration[1] = (new_velocity[1] - velocity[1]) / ((time - prev_gps_time)/1000);
+    new_acceleration[2] = (new_velocity[2] - velocity[2]) / dt;
+
+    prev_gps_time = time;
+
+    /*if((time - prev_gps_time)/1000 >= GPS_REFRESH_PERIOD) //0.2 [s]
     {
         // new_position = gps_baro_to_meters(gps, baro, temperature);
         new_position = gps_to_meter(gps);
         new_position[0] = new_position[0] - initial_position[0];
         new_position[1] = new_position[1] - initial_position[1];
-        new_position[1] = new_position[2] - initial_position[2];
+        new_position[2] = new_position[2] - initial_position[2];
         // new_position[2] = pressure_to_altitude(avg_baro(baro), temperature) - initial_position[2];
 
         new_velocity = {gpsLatitudeVelocity/1000.0, gpsLongitudeVelocity/1000.0, gpsAltitudeVelocity/1000.0};
@@ -88,7 +101,7 @@ void Navigation::update(double time, double baro1, double baro2, double baro3, d
 
         // new_velocity[2] = (new_position[2] - position[2]) / dt;
         // new_acceleration[2] = (new_velocity[2] - velocity[2]) / dt;
-    }
+    }*/
 
     position = new_position;
     velocity = new_velocity;
