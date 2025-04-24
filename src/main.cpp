@@ -178,12 +178,10 @@ void setup(void)
         return;
     }
     Serial.println("SD card initialized.");
-
     // Supprimer le fichier existant pour le recréer
     if (SD.exists("navFlight.csv")) {
         SD.remove("navFlight.csv");
     }
-
     // Create or open the navFlight log file
     NavLog = SD.open("navFlight.csv", FILE_WRITE);
     if (!NavLog) {

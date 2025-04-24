@@ -1,3 +1,6 @@
+//nav with GPS and gyro used (no baro)
+// GPS Speed used for velocity and acceleration
+
 #include "navigation_v2.h"
 
 #define _USE_MATH_DEFINES
