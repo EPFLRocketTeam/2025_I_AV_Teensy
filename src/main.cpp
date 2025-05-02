@@ -69,8 +69,8 @@ vector<double> read_data(const bool print = false) {
     uint8_t carrSoln = myGNSS.getCarrierSolutionType();
     // uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
 
-    Serial.print(F("carrSoln: "));
-    Serial.println(carrSoln);
+    // Serial.print(F("carrSoln: "));
+    // Serial.println(carrSoln);
 
     if (print) {
         Serial.print(F("Fix Type: "));
@@ -200,7 +200,7 @@ void setup(void)
     }
     Serial.println("GNSS module connected");
     myGNSS.setI2COutput(COM_TYPE_UBX);// on veut recevoir seulement les données de position on veut pas de RTCM ou de NMEA
-    myGNSS.setNavigationFrequency(10, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
+    myGNSS.setNavigationFrequency(20, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
     // la configuration VAL_LAYER_RAM ne met la frequance que dans la ram a enlever si besoin
     myGNSS.setAutoPVT(true); // Active l’envoi automatique des messages NAV-PVT
     myGNSS.setI2CpollingWait(10);

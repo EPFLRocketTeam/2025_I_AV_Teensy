@@ -61,7 +61,7 @@ private:
     std::vector<double> orientation;
     std::vector<double> angular_velocity;
 
-    static constexpr double GPS_REFRESH_PERIOD = 0.2;  // seconds
+    static constexpr double GPS_REFRESH_PERIOD = 0.05;  // seconds
     static constexpr double L = 0.0065;  // Gradient thermique (K/m)
     static constexpr double R = 8.3143;   // Constante des gaz parfaits (J/(mol·K))
     static constexpr double g = 9.80665;  // Gravité terrestre (m/s²)

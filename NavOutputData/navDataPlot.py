@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 # === Load your CSV file ===
-filename = "NavOutputData/staticFlight_7.csv"  # Change to your filename
+filename = "NavOutputData/staticFilght_10.csv"  # Change to your filename
 df = pd.read_csv(filename)
 
 # Affichage rapide pour test
@@ -45,10 +45,10 @@ plot_group(df, ["VX", "VY", "VZ"], "Velocity vs Time", "Velocity (m/s)")
 plot_group(df, ["AX", "AY", "AZ"], "Acceleration vs Time", "Acceleration (m/s²)")
 
 # === Orientation ===
-plot_group(df, ["OX", "OY", "OZ"], "Orientation vs Time", "Degrees")
+plot_group(df, ["OX", "OY", "OZ"], "Orientation vs Time", "Radians")
 
 # === Angular Velocity ===
-plot_group(df, ["WX", "WY", "WZ"], "Angular Velocity vs Time", "Degrees/s")
+plot_group(df, ["WX", "WY", "WZ"], "Angular Velocity vs Time", "Radians/s")
 
 # === Execution Time Distribution ===
 plt.figure(figsize=(8, 4))
