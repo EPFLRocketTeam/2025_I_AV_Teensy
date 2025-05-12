@@ -39,7 +39,9 @@ vector<double> read_data(const bool print = false) {
     bmp5_sensor_data data1 = {0,0}, data2 = {0,0}, data3 = {0,0};
     bmp1.getSensorData(&data1); bmp2.getSensorData(&data2); bmp3.getSensorData(&data3);
     double baro1 = data1.pressure, baro2 = data2.pressure, baro3 = data3.pressure;
-    double temperature = data1.temperature;
+    double temperature1 = data1.temperature;
+    double temperature2 = data2.temperature;
+    double temperature3 = data3.temperature;
 
     // read bno data
     sensors_event_t  angVelocityData1, angVelocityData2, angVelocityData3, orientationData;
@@ -67,6 +69,7 @@ vector<double> read_data(const bool print = false) {
     gps_velD = myGNSS.getNedDownVel();
     uint8_t fixType = myGNSS.getFixType();
     uint8_t carrSoln = myGNSS.getCarrierSolutionType();
+    uint8_t rtk_quality = myGNSS.getCarrierSolutionType();// Returns RTK solution: 0=no, 1=float solution, 2=fixed solution
     // uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
 
     // Serial.print(F("carrSoln: "));
@@ -74,7 +77,7 @@ vector<double> read_data(const bool print = false) {
 
     if (print) {
         Serial.print(F("Fix Type: "));
-        Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
+        Serial.println(fixType);
     }
     // if (myGNSS.getPVT() == true)
     // {
@@ -100,7 +103,7 @@ vector<double> read_data(const bool print = false) {
         Serial.print("Baro1: "); Serial.print(baro1); Serial.print(" Pa, ");
         Serial.print("Baro2: "); Serial.print(baro2); Serial.print(" Pa, ");
         Serial.print("Baro3: "); Serial.print(baro3); Serial.print(" Pa, ");
-        Serial.print("Temperature: "); Serial.print(temperature); Serial.print(" C, ");
+        Serial.print("Temperature: "); Serial.print(temperature1); Serial.print(" C, ");
         Serial.print("GPS Latitude: "); Serial.print(gps_latitude); Serial.print(", ");
         Serial.print("GPS Longitude: "); Serial.print(gps_longitude); Serial.print(", ");
         Serial.print("GPS Altitude: "); Serial.print(gps_altitude/1000.0); Serial.print(", ");
@@ -144,7 +147,7 @@ vector<double> read_data(const bool print = false) {
     // Serial.print(" ");
     // // Serial.println();   
 
-    return {time, baro1, baro2, baro3, temperature + 273.15, gps_latitude, gps_longitude, gps_altitude, gps_velN, gps_velE, gps_velD, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
+    return {time, baro1, baro2, baro3, temperature1 + 273.15, gps_latitude, gps_longitude, gps_altitude, gps_velN, gps_velE, gps_velD, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
 }
 
 // Function to write data to the navFlight log file
