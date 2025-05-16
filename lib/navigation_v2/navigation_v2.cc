@@ -1,3 +1,6 @@
+// Writtwn by: Emmard Frangopoulos
+// Date: 01.04.2025
+
 //nav with GPS and gyro used (no baro)
 // GPS Speed used for velocity and acceleration
 

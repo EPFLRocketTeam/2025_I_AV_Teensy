@@ -1,3 +1,6 @@
+// Writtwn by: Emmard Frangopoulos
+// Date: 01.04.2025
+
 #include "navigation.h"
 
 #define _USE_MATH_DEFINES

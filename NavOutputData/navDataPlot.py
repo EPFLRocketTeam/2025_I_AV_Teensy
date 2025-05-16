@@ -1,3 +1,7 @@
+# === NavOutputData/navDataPlot.py ===
+# Writtwn by: Emmard Frangopoulos
+# Date: 01.04.2025
+
 import pandas as pd
 import matplotlib.pyplot as plt
 

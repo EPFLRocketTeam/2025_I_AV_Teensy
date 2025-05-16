@@ -1,3 +1,6 @@
+// Writtwn by: Emmard Frangopoulos
+// Date: 01.04.2025
+
 // #include "navigation.h"
 // #include <iostream>
 // #include <vector>
