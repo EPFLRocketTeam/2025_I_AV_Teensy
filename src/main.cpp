@@ -7,14 +7,12 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-
+#include <ctime>
 #include <Arduino.h>
 #include <SD.h>
 #include <SparkFun_u-blox_GNSS_v3.h>
 
 #include "god.h"
-#include "../lib/navigation_v2/navigation_v2.h"
-
 using namespace std;
 
 GOD* god;
@@ -24,13 +22,12 @@ GOD* god;
 Adafruit_BNO055 bno1(-1, 0x28, &Wire), bno2(-1, 0x28, &Wire), bno3(-1, 0x28, &Wire);
 BMP581 bmp1, bmp2, bmp3;
 SFE_UBLOX_GNSS myGNSS; // GPS object
-Navigation nav;
 
-int i(0);
+int i(0); 
 
-//SD card logging
 const int chipSelect = BUILTIN_SDCARD; // Teensy has a built-in SD card reader
 File NavLog;
+
 
 vector<double> read_data(const bool print = false) {
     double time = millis();
@@ -43,342 +40,257 @@ vector<double> read_data(const bool print = false) {
     double temperature2 = data2.temperature;
     double temperature3 = data3.temperature;
 
+
     // read bno data
-    sensors_event_t  angVelocityData1, angVelocityData2, angVelocityData3, orientationData;
-    bno1.getEvent(&angVelocityData1, Adafruit_BNO055::VECTOR_GYROSCOPE); 
+    sensors_event_t  angVelocityData1, angVelocityData2, angVelocityData3;
+    bno1.getEvent(&angVelocityData1, Adafruit_BNO055::VECTOR_GYROSCOPE);
     bno2.getEvent(&angVelocityData2, Adafruit_BNO055::VECTOR_GYROSCOPE);
     bno3.getEvent(&angVelocityData3, Adafruit_BNO055::VECTOR_GYROSCOPE);
     double gyroX1 = angVelocityData1.gyro.x, gyroY1 = angVelocityData1.gyro.y, gyroZ1 = angVelocityData1.gyro.z;
     double gyroX2 = angVelocityData2.gyro.x, gyroY2 = angVelocityData2.gyro.y, gyroZ2 = angVelocityData2.gyro.z;
     double gyroX3 = angVelocityData3.gyro.x, gyroY3 = angVelocityData3.gyro.y, gyroZ3 = angVelocityData3.gyro.z;
 
-    // bno1.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-    // double roll = orientationData.orientation.x; // Roll angle in degrees
-    // double pitch = orientationData.orientation.y; // Pitch angle in degrees
-    // Serial.print("roll: "); Serial.print(roll); Serial.print(", ");
-    // Serial.print("pitch: "); Serial.print(pitch); Serial.print(" ---- ");
+    sensors_event_t accelerometerData1, accelerometerData2, accelerometerData3  ;
+    bno1.getEvent(&accelerometerData1, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    bno2.getEvent(&accelerometerData2, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    bno3.getEvent(&accelerometerData3, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    double accX1 = accelerometerData1.acceleration.x, accY1 = accelerometerData1.acceleration.y, accZ1 = accelerometerData1.acceleration.z;
+    double accX2 = accelerometerData2.acceleration.x, accY2 = accelerometerData2.acceleration.y, accZ2 = accelerometerData2.acceleration.z;
+    double accX3 = accelerometerData3.acceleration.x, accY3 = accelerometerData3.acceleration.y, accZ3 = accelerometerData3.acceleration.z;
 
-    // read gps data
-    double gps_latitude = 0.0, gps_longitude = 0.0, gps_altitude = 0.0, gps_speed = 0.0, gps_velN = 0.0, gps_velE = 0.0, gps_velD = 0.0; // to change
-    gps_latitude = myGNSS.getLatitude();
-    gps_longitude = myGNSS.getLongitude();
-    gps_altitude = myGNSS.getAltitudeMSL() / 1000.0; // in meters
-    gps_speed = myGNSS.getGroundSpeed();
-    gps_velN = myGNSS.getNedNorthVel();
-    gps_velE = myGNSS.getNedEastVel();
-    gps_velD = myGNSS.getNedDownVel();
-    uint8_t fixType = myGNSS.getFixType();
-    uint8_t carrSoln = myGNSS.getCarrierSolutionType();
-    uint8_t rtk_quality = myGNSS.getCarrierSolutionType();// Returns RTK solution: 0=no, 1=float solution, 2=fixed solution
-    // uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
 
-    // Serial.print(F("carrSoln: "));
-    // Serial.println(carrSoln);
+    double gps_latitude = 0.0; // to change
+    double gps_longitude = 0.0;
+    double gps_altitude = 0.0; // in meters
+    double gps_speed = 0.0; // unit is mm/s from library, but original logic didn't divide by 1000 here
+    double gps_velN = 0.0; // mm/s
+    double gps_velE = 0.0; // mm/s
+    double gps_velD = 0.0; // mm/s
+    uint8_t fixType = 0;
+    uint8_t carrSoln = 0;
 
-    if (print) {
-        Serial.print(F("Fix Type: "));
-        Serial.println(fixType);
-    }
+    gps_latitude = (double)myGNSS.getLatitude(); // degrees * 10^-7
+    gps_longitude = (double)myGNSS.getLongitude(); // degrees * 10^-7
+    gps_altitude = (double)myGNSS.getAltitudeMSL() / 1000.0; // m
+    gps_speed = (double)myGNSS.getGroundSpeed() / 1000.0; // m/s
+    gps_velN = (double)myGNSS.getNedNorthVel() / 1000.0; // m/s
+    gps_velE = (double)myGNSS.getNedEastVel() / 1000.0; // m/s
+    gps_velD = (double)myGNSS.getNedDownVel() / 1000.0; // m/s
+
+    fixType = myGNSS.getFixType(); // update fixType
+    carrSoln = myGNSS.getCarrierSolutionType(); // update carrSoln
+
     // if (myGNSS.getPVT() == true)
     // {
-    //     gps_latitude = myGNSS.getLatitude();
-    //     gps_longitude = myGNSS.getLongitude();
-    //     gps_altitude = myGNSS.getAltitudeMSL();
-    //     gps_speed = myGNSS.getGroundSpeed();
-    //     gps_velN = myGNSS.getNedNorthVel();
-    //     gps_velE = myGNSS.getNedEastVel();
-    //     gps_velD = myGNSS.getNedDownVel();
+       
+    //     gps_latitude = (double)myGNSS.getLatitude(); // degrees * 10^-7
+    //     gps_longitude = (double)myGNSS.getLongitude(); // degrees * 10^-7
+    //     gps_altitude = (double)myGNSS.getAltitudeMSL() / 1000.0; // mm
+    //     gps_speed = (double)myGNSS.getGroundSpeed(); // mm/s
+    //     gps_velN = (double)myGNSS.getNedNorthVel(); // mm/s
+    //     gps_velE = (double)myGNSS.getNedEastVel(); // mm/s
+    //     gps_velD = (double)myGNSS.getNedDownVel(); // mm/s
 
-    //     uint8_t fixType = myGNSS.getFixType();
-    //     uint8_t numSV = myGNSS.getSIV();//nbr de sat utilisé
-    //     if (print) {
-    //         Serial.print(F("Fix Type: "));
-    //         Serial.println(fixType); // on veut 4(RTK flottant) ou 5(RTK fixe)
-    //     }
-    // }        
+    //     fixType = myGNSS.getFixType(); // update fixType
+    //     carrSoln = myGNSS.getCarrierSolutionType(); // update carrSoln
 
-    // print data
+    // }
+
     if (print) {
         Serial.print("Time: "); Serial.print(time); Serial.print(" ms, ");
         Serial.print("Baro1: "); Serial.print(baro1); Serial.print(" Pa, ");
         Serial.print("Baro2: "); Serial.print(baro2); Serial.print(" Pa, ");
         Serial.print("Baro3: "); Serial.print(baro3); Serial.print(" Pa, ");
         Serial.print("Temperature: "); Serial.print(temperature1); Serial.print(" C, ");
+        Serial.print("Temperature: "); Serial.print(temperature2); Serial.print(" C, ");
+        Serial.print("Temperature: "); Serial.print(temperature3); Serial.print(" C, ");
         Serial.print("GPS Latitude: "); Serial.print(gps_latitude); Serial.print(", ");
         Serial.print("GPS Longitude: "); Serial.print(gps_longitude); Serial.print(", ");
-        Serial.print("GPS Altitude: "); Serial.print(gps_altitude/1000.0); Serial.print(", ");
+        Serial.print("GPS Altitude: "); Serial.print(gps_altitude); Serial.print(", "); 
         Serial.print("GyroX1: "); Serial.print(gyroX1); Serial.print(", ");
         Serial.print("GyroY1: "); Serial.print(gyroY1); Serial.print(", ");
-        Serial.print("GyroZ1: "); Serial.println(gyroZ1);
-
-        // Serial.print(F("Lat: "));
-        // Serial.print(gps_latitude);
-        // Serial.print(F(" Long: "));
-        // Serial.print(gps_longitude);
-        // Serial.print(F(" (degrees * 10^-7)"));
-        // Serial.print(F(" Alt: "));
-        // Serial.print(gps_altitude);
-        // Serial.print(F(" (mm)"));
-        // Serial.print(F("Ground Speed: "));
-        // Serial.print(gps_speed / 1000.0);
-        // Serial.print(F(" m/s"));
-        // Serial.print(F(" VelN: "));
-        // Serial.print(gps_velN / 1000.0);
-        // Serial.print(F(" m/s"));
-        // Serial.print(F(" VelE: "));
-        // Serial.print(gps_velE / 1000.0);
-        // Serial.print(F(" m/s"));
-        // Serial.print(F(" VelD: "));
-        // Serial.print(gps_velD / 1000.0);
-        // Serial.print(F(" m/s"));
+        Serial.print("GyroZ1: "); Serial.println(gyroZ1); 
+        Serial.print(F("Fix Type: ")); Serial.print(fixType); Serial.println();
+        Serial.print("carrierSolution: "); Serial.println(carrSoln); 
     }
 
-    // // Serial.print("Baro1: "); 
-    // Serial.print(baro1); 
-    // Serial.print(" ");
-    // // Serial.print("Baro2: "); 
-    // Serial.print(baro2); 
-    // Serial.print(" ");
-    // // Serial.print("Baro3: "); 
-    // Serial.print(baro3); 
-    // Serial.print(" ");
-    // // Serial.print("Temp: "); 
-    // Serial.print(temperature); 
-    // Serial.print(" ");
-    // // Serial.println();   
+    std::vector<double> data; 
+    data.push_back(time);               // 0
+    data.push_back(baro1);              // 1
+    data.push_back(baro2);              // 2
+    data.push_back(baro3);              // 3
+    data.push_back(temperature1 + 273.15); // 4
+    data.push_back(temperature2 + 273.15); // 5
+    data.push_back(temperature3 + 273.15); // 6
+    data.push_back(gps_latitude);       // 
+    data.push_back(gps_longitude);      //  
+    data.push_back(gps_altitude);       //  
+    data.push_back(gps_velN);           //  
+    data.push_back(gps_velE);           // 
+    data.push_back(gps_velD);           // 10
+    data.push_back(accX1);              // 11
+    data.push_back(accY1);              // 12
+    data.push_back(accZ1);              // 13
+    data.push_back(gyroX1);             // 14
+    data.push_back(gyroY1);             // 15
+    data.push_back(gyroZ1);             // 16
+    data.push_back(accX2);              // 17
+    data.push_back(accY2);              // 18
+    data.push_back(accZ2);              // 19
+    data.push_back(gyroX2);             // 20
+    data.push_back(gyroY2);             // 21
+    data.push_back(gyroZ2);             // 22
+    data.push_back(accX3);              // 23
+    data.push_back(accY3);              // 24
+    data.push_back(accZ3);              // 25
+    data.push_back(gyroX3);             // 26
+    data.push_back(gyroY3);             // 27
+    data.push_back(gyroZ3);             // 28
+    data.push_back((double)fixType);    // 29 - Cast uint8_t to double for vector
+    data.push_back((double)carrSoln);   // 30 - Cast uint8_t to double for vector
 
-    return {time, baro1, baro2, baro3, temperature1 + 273.15, gps_latitude, gps_longitude, gps_altitude, gps_velN, gps_velE, gps_velD, gyroX1, gyroY1, gyroZ1, gyroX2, gyroY2, gyroZ2, gyroX3, gyroY3, gyroZ3};
+    return data; // Return the vector of raw data
+
 }
 
-// Function to write data to the navFlight log file
-// This function takes a vector of data and a vector of state variables as input
-void write_data(const vector<double>& data, const vector<double>& state) {
-    // Write the data to the navFlight log file
-    NavLog.print(data[0]); // Time(ms)
-
-    for(int j = 0; j < 15; j++) {
-        NavLog.print(",");
-        NavLog.print(state[j]);
-    }
-    // NavLog.println();
-
-    // if(i%10 == 0) {
-    //     NavLog.flush(); // Ensure data is written to the SD card
-    // }
-    // i++;
-}
 
 void setup(void)
 {
+    Serial.println("test1");
     Serial.begin(115200); // 110, 300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
     Serial.println("serial complete");
     Wire.begin();
     Wire2.begin();
 
-    
-    if (!SD.begin(chipSelect)) {
+
+    while(!SD.begin(chipSelect)) {
         Serial.println("SD card initialization failed!");
-        return;
     }
     Serial.println("SD card initialized.");
     // Supprimer le fichier existant pour le recréer
-    if (SD.exists("navFlight.csv")) {
-        SD.remove("navFlight.csv");
-    }
-    // Create or open the navFlight log file
-    NavLog = SD.open("navFlight.csv", FILE_WRITE);
-    if (!NavLog) {
-        Serial.println("Failed to create navFlight log file!");
-        return;
-    }
-    // Write the CSV header
-    NavLog.println("Time(ms), X(m), Y(m), Z(m), VX(m/s), VY(m/s), VZ(m/s), AX(m/s^2), AY(m/s^2), AZ(m/s^2), OX(degrees), OY(degrees), OZ(degrees), WX(degrees/s), WY(degrees/s), WZ(degrees/s), execution_time");
-    NavLog.flush();
 
-    // Initialize the GNSS module
-    while (myGNSS.begin() == false) //on attend la connection en I2C
+    //if (SD.exists("raw_data.csv")) { // Use raw_data.csv filename
+    //    SD.remove("raw_data.csv"); // Use raw_data.csv filename
+    //}
+
+    // Create or open the raw data log file
+    time_t timestamp;
+    
+    NavLog = SD.open(("raw_data" + String(timestamp) + ".csv").c_str(), FILE_WRITE); // Use raw_data.csv filename
+    if (!NavLog) {
+        Serial.println("Failed to create raw_data log file!"); // Use raw_data.csv filename
+         // Stay in a loop if SD card is critical for data logging
+        while (true); // Added infinite loop on failure
+    }
+
+    
+    NavLog.println("Time,Baro1,Baro2,Baro3,Temp1,GPS_Lat,GPS_Lon,GPS_Alt,GPS_VelN,GPS_VelE,GPS_VelD,Accel1X,Accel1Y,Accel1Z,Gyro1X,Gyro1Y,Gyro1Z,Accel2X,Accel2Y,Accel2Z,Gyro2X,Gyro2Y,Gyro2Z,Accel3X,Accel3Y,Accel3Z,Gyro3X,GyroY3,GyroZ3,GPS_FixType,GPS_CarrSoln,LoopTime");
+    NavLog.flush();
+    Serial.println("SD card header written.");
+
+
+    while (myGNSS.begin() == false) //on attend la connection en I2C (myGNSS uses Wire default 0x42)
     {
         Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
         delay(100);
     }
     Serial.println("GNSS module connected");
     myGNSS.setI2COutput(COM_TYPE_UBX);// on veut recevoir seulement les données de position on veut pas de RTCM ou de NMEA
-    myGNSS.setNavigationFrequency(20, VAL_LAYER_RAM);// Réglage de la fréquence à 5 Hz (plus vite le RTK ne suit pas) 
-    // la configuration VAL_LAYER_RAM ne met la frequance que dans la ram a enlever si besoin
+    myGNSS.setNavigationFrequency(20, VAL_LAYER_RAM);// Réglage de la fréquence à 20 Hz 
+   
     myGNSS.setAutoPVT(true); // Active l’envoi automatique des messages NAV-PVT
     myGNSS.setI2CpollingWait(10);
 
-    //bno initialization
+
+    Serial.print("Initializing BNO055 sensor 1 (Wire, 0x28)...");
     while (!bno1.begin()) {
-        Serial.println("Ooops, no BNO055 1 detected ... Check your wiring or I2C ADDR!"); 
+        Serial.println("Ooops, no BNO055 1 detected ... Check your wiring or I2C ADDR!");
         delay(100);
     }
     Serial.println("bno 1 complete");
 
-    // while (!bno2.begin()) {
-    //     Serial.println("Ooops, no BNO055 2 detected ... Check your wiring or I2C ADDR!"); 
-    //     delay(100);
-    // }
-    // Serial.println("bno 2 complete");
     
-    // while (!bno3.begin()) {
-    //     Serial.println("Ooops, no BNO055 3 detected ... Check your wiring or I2C ADDR!"); 
-    //     delay(100);
-    // }
-    // Serial.println("bno 3 complete");
+    Serial.print("Initializing BNO055 sensor 2 (Wire, 0x28)...");
+    while (!bno2.begin()) {
+         Serial.println("Ooops, no BNO055 2 detected ... Check wiring/address!");
+         delay(100);
+    }
+    Serial.println("bno 2 complete");
 
-    // bmp initialization
+    Serial.print("Initializing BNO055 sensor 3 (Wire, 0x28)...");
+     while (!bno3.begin()) { 
+        Serial.println("Ooops, no BNO055 3 detected ... Check wiring/address!");
+        delay(100);
+    }
+    Serial.println("bno 3 complete");
+
+
+    Serial.print("Initializing BMP581 sensor 1 (Wire, 0x47)...");
     while(bmp1.beginI2C(0x47, Wire) != BMP5_OK) {
-        Serial.println("Error: BMP581 1 not connected, check wiring and I2C address!"); 
+        Serial.println("Error: BMP581 1 not connected, check wiring and I2C address!");
         delay(100);
     }
     Serial.println("bmp 1 complete");
-    
-    while(bmp2.beginI2C(0x47, Wire) != BMP5_OK) {
-        Serial.println("Error: BMP581 2 not connected, check wiring and I2C address!"); 
+
+    Serial.print("Initializing BMP581 sensor 2 (Wire, 0x47)...");
+    while(bmp2.beginI2C(0x47, Wire) != BMP5_OK) { 
+        Serial.println("Error: BMP581 2 not connected, check wiring and I2C address!");
         delay(100);
     }
     Serial.println("bmp 2 complete");
-    while(bmp3.beginI2C(0x46, Wire2) != BMP5_OK) {
-        Serial.println("Error: BMP581 3 not connected, check wiring and I2C address!"); 
+
+    Serial.print("Initializing BMP581 sensor 3 (Wire2, 0x46)...");
+    while(bmp3.beginI2C(0x46, Wire2) != BMP5_OK) { 
+        Serial.println("Error: BMP581 3 not connected, check wiring and I2C address!");
         delay(100);
     }
     Serial.println("bmp 3 complete");
 
-    // lit les premières valeurs dand le vide au cas ou le capteur est pas encore stable
-    for (int i = 0; i < 5; ++i) {
-        read_data();
-        delay(1000);
-    }
-
-    //Fait une moyenne des 50 premières valeurs de pression et de temperature pour initialiser la navigation avec ca
-    double p01 = 0;
-    int count1  = 0;
-    double p02 = 0;
-    int count2  = 0;
-    double p03 = 0;
-    int count3  = 0;
-    double t0 = 0;
-    int count4  = 0;
-    for (int i = 0; i < 50; ++i) {
-        double p1 = read_data()[1];
-        double p2 = read_data()[2];
-        double p3 = read_data()[3];
-        double t = read_data()[4] - 273.15;
-        if (p1 > 100) {
-            p01 += p1;
-            count1++;
-        }
-        if (p2 > 100) {
-            p02 += p2;
-            count2++;
-        }
-        if (p3 > 100) {
-            p03 += p3;
-            count3++;
-        }
-        if (t > 1) {
-            t0 += t;
-            count4++;
-        }
-        delay(10);
-    }
-    p01 = p01 / count1;
-    p02 = p02 / count2;
-    p03 = p03 / count3;
-    t0 = 273.15 + t0 / count4;
-
-    //initialise la navigation
-    vector<double> data = read_data();
-    data[1] = p01;
-    data[2] = p02;
-    data[3] = p03;
-    data[4] = t0;
-    nav.init(data);
-    vector<double> state = nav.get_state();
-    Serial.print("X = ");
-    Serial.print(state[0]);
-    Serial.print("Y = ");
-    Serial.print(state[1]);
-    Serial.print("Z = ");
-    Serial.print(state[2]);
-    
-    Serial.println("Setup complete");
 }
 
 void loop(void)
 {
     double startTime = millis();
 
-    // Serial.println("test");
-    // blink led
-    // digitalWrite(LED_BUILTIN, HIGH);
-    // delay(500);
-    // digitalWrite(LED_BUILTIN, LOW);
-    // delay(500);
+    i++; // Increment total loop counter
 
     //lit les nouvelles données
-    std::vector<double> data = read_data();
+    std::vector<double> data = read_data(true); // Read data from sensors
 
-    // Serial.print(data[1]); Serial.print(data[2]); Serial.print(data[3]); Serial.println();
 
-    //appel l'update de la navigation avec les nouvelles données
-    nav.update(data);
 
-    // Print the state
-    vector<double> state = nav.get_state();
-    Serial.print(" Time: ");
-    Serial.println(data[0]);
-    Serial.print(" X = ");
-    Serial.print(state[0]);
-    Serial.print(" Y = ");
-    Serial.print(state[1]);
-    Serial.print(" Z = ");
-    Serial.print(state[2]);
-    Serial.print(" VX = ");
-    Serial.print(state[3]);
-    Serial.print(" VY = ");
-    Serial.print(state[4]);
-    Serial.print(" VZ = ");
-    Serial.print(state[5]);
-    Serial.print(" AX = ");
-    Serial.print(state[6]);
-    Serial.print(" AY = ");
-    Serial.print(state[7]);
-    Serial.print(" AZ = ");
-    Serial.print(state[8]);
-    Serial.print(" OX = ");
-    Serial.print(state[9]);
-    Serial.print(" OY = ");
-    Serial.print(state[10]);
-    Serial.print(" OZ = ");
-    Serial.print(state[11]);
-    Serial.print(" WX = ");
-    Serial.print(state[12]);
-    Serial.print(" WY = ");
-    Serial.print(state[13]);
-    Serial.print(" WZ = ");
-    Serial.print(state[14]);
-    Serial.println();
+    
+    if (i > 100) { // Skip the first 100 readings
+        
+        for (size_t j = 0; j < data.size(); ++j) { // Loop through the vector of raw data
+            
+            if (j == 31 || j == 32) { // GPS_FixType (29) and GPS_CarrSoln (30)
+                 NavLog.print((int)data[j]); // Print as integer (no decimal places
+            } else {
+                 NavLog.print(data[j], 6); // Print with 6 decimal
+            }
 
-    write_data(data, state);
+            if (j < data.size() - 1) {
+                NavLog.print(",");
+            }
+        }
 
-    //delay(10);
+        // Calculate and log loop time - Logged as the LAST column
+        double loopTime = millis() - startTime; // temps depuis le début de la boucle
+        NavLog.print(","); // Add comma before loop time
+        NavLog.print(loopTime, 3);
+        NavLog.println();
 
-    double loopTime = millis() - startTime; // temps depuis le début de la boucle
+        // Flush data to SD card periodically, only after logging has started
 
-    if(loopTime < 10) {
-        delay(10 - loopTime); // on attend le temps qu'il reste pour faire 10ms
+        if((i - 100) % 10 == 0) { // Flush every 10 logged entries
+            NavLog.flush();
+        }
     }
 
-    loopTime = millis() - startTime; // temps depuis le début de la boucle
 
-    NavLog.print(",");
-    NavLog.print(loopTime);
-    NavLog.println();
-
-    if(i%10 == 0) {
-        NavLog.flush(); // Ensure data is written to the SD card
-    }
-    i++;
+    // double executionTime = millis() - startTime;
+    // if(executionTime < 10) {
+    //     delay(10 - executionTime); // on attend le temps qu'il reste pour faire 10ms
+    // }
 }
