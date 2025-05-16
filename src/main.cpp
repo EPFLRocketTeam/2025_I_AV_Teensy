@@ -195,7 +195,7 @@ void setup(void)
     NavLog.println("Time(ms), X(m), Y(m), Z(m), VX(m/s), VY(m/s), VZ(m/s), AX(m/s^2), AY(m/s^2), AZ(m/s^2), OX(degrees), OY(degrees), OZ(degrees), WX(degrees/s), WY(degrees/s), WZ(degrees/s), execution_time");
     NavLog.flush();
 
-
+    // Initialize the GNSS module
     while (myGNSS.begin() == false) //on attend la connection en I2C
     {
         Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
@@ -208,7 +208,7 @@ void setup(void)
     myGNSS.setAutoPVT(true); // Active l’envoi automatique des messages NAV-PVT
     myGNSS.setI2CpollingWait(10);
 
-
+    //bno initialization
     while (!bno1.begin()) {
         Serial.println("Ooops, no BNO055 1 detected ... Check your wiring or I2C ADDR!"); 
         delay(100);
@@ -227,6 +227,7 @@ void setup(void)
     // }
     // Serial.println("bno 3 complete");
 
+    // bmp initialization
     while(bmp1.beginI2C(0x47, Wire) != BMP5_OK) {
         Serial.println("Error: BMP581 1 not connected, check wiring and I2C address!"); 
         delay(100);
